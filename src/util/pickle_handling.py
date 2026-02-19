@@ -13,10 +13,4 @@ def save_to_pickle_file(file_path: str, data) -> None:
 def load_pickle_file(file_path: Path):
     with open(file_path, "rb") as file:
         contents = file.read()
-        try:
-            pickle.loads(contents)
-            return pickle.load(file)
-        except pickle.UnpicklingError as e:
-            # Handle unpickle error
-            cleanup()
-            exit(1)
+        return pickle.loads(contents)
