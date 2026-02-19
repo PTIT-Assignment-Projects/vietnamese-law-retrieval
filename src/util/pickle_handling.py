@@ -1,7 +1,7 @@
 import pickle
 from pathlib import Path
 
-from libxslt import cleanup
+
 
 
 def save_to_pickle_file(file_path: str, data) -> None:
@@ -16,5 +16,4 @@ def load_pickle_file(file_path: Path):
         try:
             return pickle.loads(contents)
         except pickle.UnpicklingError as e:
-            cleanup()
-            exit(1)
+            raise e
