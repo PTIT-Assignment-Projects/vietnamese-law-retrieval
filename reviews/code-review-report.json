@@ -1,48 +1,43 @@
 {
     "issues": {
-        "src/preprocessing/preprocessing.py": [
+        "src/preprocessing/text_processor.py": [
             {
-                "title": "Unclear comment wording",
-                "details": "The comment '# match with underthesea tokenize words' is grammatically incorrect and unclear. It should state the purpose of space-to-underscore replacement in relation to underthesea tokenization formatting.",
+                "title": "Inconsistent Character Set in Regular Expression Pattern",
+                "details": "The regular expression pattern is using a mix of Unicode characters and escaped characters. To maintain consistency, it is better to use either Unicode characters or escaped characters throughout the pattern.",
                 "severity": 3,
                 "confidence": 1,
                 "tags": [
-                    "language",
-                    "readability"
+                    "naming",
+                    "code-style"
                 ],
                 "affected_lines": [
                     {
-                        "start_line": 11,
-                        "end_line": 11,
-                        "proposal": "        # Normalize for compatibility with underthesea tokenization format",
-                        "file": "src/preprocessing/preprocessing.py",
-                        "affected_code": "11:             line.strip().replace(\" \", \"_\").lower() # match with underthesea tokenize words"
+                        "start_line": 20,
+                        "end_line": 20,
+                        "proposal": "            valid_pattern = re.compile(\n                r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\"\n            )",
+                        "file": "src/preprocessing/text_processor.py",
+                        "affected_code": "20:             r\"^[a-z0-9_\u00e0\u00e1\u1ea3\u00e3\u1ea1\u0103\u1eb1\u1eaf\u1eb3\u1eb5\u1eb7\u00e2\u1ea7\u1ea5\u1ea9\u1eab\u1ead\u00e8\u00e9\u1ebb\u1ebd\u1eb9\u00ea\u1ec1\u1ebf\u1ec3\u1ec5\u1ec7\u00ec\u00ed\u1ec9\u0129\u1ecb\u00f2\u00f3\u1ecf\u00f5\u1ecd\u00f4\u1ed3\u1ed1\u1ed5\u1ed7\u1ed9\u01a1\u1edd\u1edb\u1edf\u1ee1\u1ee3\u00f9\u00fa\u1ee7\u0169\u1ee5\u01b0\u1eeb\u1ee9\u1eed\u1eef\u1ef1\u1ef3\u00fd\u1ef7\u1ef9\u1ef5\u0111.\\-]+$\""
                     }
                 ],
                 "id": 1,
-                "file": "src/preprocessing/preprocessing.py"
+                "file": "src/preprocessing/text_processor.py"
             }
         ]
     },
-    "summary": "<think>\nOkay, let's see. The user wants me to summarize the code review in one sentence. The code changes involve adding a function to load Vietnamese stopwords and modifying the text processing to return a list of tokens instead of a string. There's also a comment that was improved for clarity.\n\nThe main points are: loading stopwords from a file, changing the return type of process_text to a list, and fixing a comment. The detected issue was about the comment being unclear, which they fixed by rephrasing it. \n\nNow, looking at the awards, none of them seem to fit except maybe \"Refactoring Archmage\" if there was a significant refactor, but the changes here are more about adding functionality and improving existing code rather than refactoring. The \"Code Chronicler\" award could apply because they improved a comment, but the example given is more about useful comments, not just rephrasing. The \"Readability Impressionist\" might fit because the code is more readable now, but again, the example is about code that reads like prose. \n\nI don't think any of the awards are warranted here. The changes are good but not exceptional. The summary should mention the addition of the stopwords function, the modification to return tokens as a list, and the improved comment. I need to condense this into a single sentence without mentioning the issues directly, as per the instructions.\n</think>\n\nThe code introduces a dedicated function for loading Vietnamese stopwords and modifies `process_text` to return tokens as a list instead of a joined string, while improving comment clarity.",
-    "number_of_processed_files": 2,
+    "summary": "The code review of the `TextProcessor` class in `text_processor.py` reveals an inconsistent character set in the regular expression pattern, which can be improved for better consistency and readability, but does not demonstrate exceptional achievements worthy of an award.",
+    "number_of_processed_files": 1,
     "total_issues": 1,
-    "created_at": "2026-02-19 23:03:46",
-    "model": "qwen/qwen3-32b",
+    "created_at": "2026-02-19 23:06:35",
+    "model": "llama-3.3-70b-versatile",
     "pipeline_out": {},
-    "processing_warnings": [
-        {
-            "message": "File src/preprocessing/text_processor.py was skipped due to error: [BadAIJsonAnswer] Expecting value: line 1 column 2 (char 1).",
-            "file": "src/preprocessing/text_processor.py"
-        }
-    ],
+    "processing_warnings": [],
     "target": {
         "git_platform_type": "GitHub",
         "repo_url": "https://github.com/PTIT-Assignment-Projects/vietnamese-law-retrieval",
         "pull_request_id": null,
         "what": null,
         "against": null,
-        "commit_sha": "3536a3b8fb596e84585d2b8209e7cae184105196",
+        "commit_sha": "f1a02a67570b11efa94bc7fb1ef2933f1c076e1d",
         "filters": "",
         "use_merge_base": true,
         "active_branch": "main"
