@@ -9,5 +9,10 @@ TEST_PATH = str(BASE / "data" / "test.csv")
 
 
 # UTIL FILE
-
 VIETNAMESE_STOPWORDS_FILE_PATH = str(BASE / "util_file" / "vietnamese-stopwords.txt")
+RAW_CORPUS_DICT_PATH = str(BASE / "util_file" / "raw_corpus.pkl")
+PROCESSED_CORPUS_DICT_PATH = str(BASE / "util_file" / "processed_corpus.pkl")
+
+# COlUMN
+CID_COLUMN = "cid"
+TEXT_COLUMN = "text"

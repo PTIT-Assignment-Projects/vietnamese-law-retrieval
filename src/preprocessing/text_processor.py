@@ -31,8 +31,3 @@ class TextProcessor:
             if t not in self.stopwords and len(t) > 1:
                 cleaned_tokens.append(t)
         return cleaned_tokens
-
-def main():
-    processor = TextProcessor()
-    print(processor.process_text('Xin chào các bạn, tôi tên là Tuấn Dương'))
-main()
