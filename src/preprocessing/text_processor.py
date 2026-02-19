@@ -17,7 +17,8 @@ class TextProcessor:
         text = words.replace("\ufffd", " ")
         tokens = word_tokenize(text, format="text", use_token_normalize=True).split()
         valid_pattern = re.compile(
-            r'^[a-z0-9_àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\.\-]+$')
+            r"^[a-z0-9_àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ.\-]+$"
+        )
         cleaned_tokens = []
         for t in tokens:
             # Only keep tokens that match our valid character set
