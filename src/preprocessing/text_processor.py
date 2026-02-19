@@ -1,4 +1,5 @@
 import re
+from typing import List
 
 from underthesea import text_normalize, word_tokenize
 
@@ -9,7 +10,7 @@ class TextProcessor:
     def __init__(self):
         self.stopwords = load_vietnamese_stopwords()
 
-    def process_text(self, text: str) -> str:
+    def process_text(self, text: str) -> List[str]:
         words = text_normalize(text)
         words = words.lower()
         # invalid token
@@ -26,4 +27,4 @@ class TextProcessor:
             # Finally, check for stopwords and length
             if t not in self.stopwords and len(t) > 1:
                 cleaned_tokens.append(t)
-        return " ".join(cleaned_tokens)
+        return cleaned_tokens
