@@ -1,0 +1,72 @@
+{
+    "issues": {
+        ".gito/config.toml": [
+            {
+                "title": "Invalid JSON syntax in prompt template",
+                "details": "The JSON schema example in the prompt template (line 170) contains an extraneous semicolon after the opening bracket of the 'affected_lines' array, making it invalid JSON. This could mislead the AI or cause downstream parsing errors. The line should be corrected to remove the semicolon, restoring valid JSON syntax.",
+                "severity": 1,
+                "confidence": 1,
+                "tags": [
+                    "bug"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 170,
+                        "end_line": 170,
+                        "proposal": "        \"affected_lines\": [",
+                        "file": ".gito/config.toml",
+                        "affected_code": "170:         \"affected_lines\": [;"
+                    }
+                ],
+                "id": 1,
+                "file": ".gito/config.toml"
+            }
+        ],
+        "reviews/code-review-report.md": [
+            {
+                "title": "Critical security risk in pickle serialization",
+                "details": "Untrusted pickle loading introduces a critical vulnerability enabling arbitrary code execution.",
+                "severity": 1,
+                "confidence": 1,
+                "tags": [
+                    "security",
+                    "bug"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 23,
+                        "end_line": 30,
+                        "proposal": "def load_pickle_file(file_path: Path, data) -> Any",
+                        "file": "reviews/code-review-report.md",
+                        "affected_code": "23: **Tags: security, bug**\n24: **Affected code:**\n25: ```markdown\n26: 21: with open(file_path, 'rb') as file:\n27: 22:     contents = file.read()\n28: 23: try:\n29: 24:     pickle.loads(contents)\n30: 25:     return pickle.load(file)"
+                    }
+                ],
+                "id": 2,
+                "file": "reviews/code-review-report.md"
+            }
+        ]
+    },
+    "summary": "{\n  \"tags\": [\"security\", \"bug\"],\n  \"severity\": 1,\n  \"confidence\": 1,\n  \"affected_lines\": [\"Line 24\"],\n  \"proposal\": \"Correct pickle loading vulnerability\",\n  \"proposal\": \"Revise load_pickle_file implementation\",\n  \"confidence\": 2,\n  \"adjustments\": {\n    \"format\": \"aligned to current style\",\n    \"programmatical_restoration\": \"true\"\n  }\n}",
+    "number_of_processed_files": 3,
+    "total_issues": 2,
+    "created_at": "2026-02-19 16:13:17",
+    "model": "openrouter/free",
+    "pipeline_out": {},
+    "processing_warnings": [
+        {
+            "message": "File src/util/pickle_handling.py was skipped due to error: [LLMAuthError] Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}.",
+            "file": "src/util/pickle_handling.py"
+        }
+    ],
+    "target": {
+        "git_platform_type": "GitHub",
+        "repo_url": "https://github.com/PTIT-Assignment-Projects/vietnamese-law-retrieval",
+        "pull_request_id": null,
+        "what": null,
+        "against": null,
+        "commit_sha": "6e491e624507c47774787a55e3f135be7cdf6986",
+        "filters": "",
+        "use_merge_base": true,
+        "active_branch": "main"
+    }
+}
