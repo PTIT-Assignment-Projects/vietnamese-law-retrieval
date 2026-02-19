@@ -2,32 +2,74 @@
     "issues": {
         "src/preprocessing/text_processor.py": [
             {
-                "title": "Inconsistent Character Set in Regular Expression Pattern",
-                "details": "The regular expression pattern is using a mix of Unicode characters and escaped characters. To maintain consistency, it is better to use either Unicode characters or escaped characters throughout the pattern.",
+                "title": "Inconsistent Character Set in Regular Expression",
+                "details": "The regular expression pattern has been changed to use Unicode character ranges, but the comment above it still mentions specific characters that are no longer matched by the pattern.",
                 "severity": 3,
                 "confidence": 1,
                 "tags": [
-                    "naming",
-                    "code-style"
+                    "readability",
+                    "maintainability"
                 ],
                 "affected_lines": [
                     {
-                        "start_line": 20,
+                        "start_line": 19,
                         "end_line": 20,
-                        "proposal": "            valid_pattern = re.compile(\n                r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\"\n            )",
+                        "proposal": "valid_pattern = re.compile(\n            r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\")  # Updated pattern to match Unicode characters",
                         "file": "src/preprocessing/text_processor.py",
-                        "affected_code": "20:             r\"^[a-z0-9_\u00e0\u00e1\u1ea3\u00e3\u1ea1\u0103\u1eb1\u1eaf\u1eb3\u1eb5\u1eb7\u00e2\u1ea7\u1ea5\u1ea9\u1eab\u1ead\u00e8\u00e9\u1ebb\u1ebd\u1eb9\u00ea\u1ec1\u1ebf\u1ec3\u1ec5\u1ec7\u00ec\u00ed\u1ec9\u0129\u1ecb\u00f2\u00f3\u1ecf\u00f5\u1ecd\u00f4\u1ed3\u1ed1\u1ed5\u1ed7\u1ed9\u01a1\u1edd\u1edb\u1edf\u1ee1\u1ee3\u00f9\u00fa\u1ee7\u0169\u1ee5\u01b0\u1eeb\u1ee9\u1eed\u1eef\u1ef1\u1ef3\u00fd\u1ef7\u1ef9\u1ef5\u0111.\\-]+$\""
+                        "affected_code": "19:         valid_pattern = re.compile(\n20:             r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\""
                     }
                 ],
                 "id": 1,
                 "file": "src/preprocessing/text_processor.py"
+            },
+            {
+                "title": "Lack of Input Validation",
+                "details": "The function process_text does not validate its input. If text is None, the function will throw an error.",
+                "severity": 2,
+                "confidence": 1,
+                "tags": [
+                    "bug",
+                    "robustness"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 14,
+                        "end_line": 14,
+                        "proposal": "if text is None:\n            raise ValueError(\"Input text cannot be None\")",
+                        "file": "src/preprocessing/text_processor.py",
+                        "affected_code": "14:         words = text_normalize(text)"
+                    }
+                ],
+                "id": 2,
+                "file": "src/preprocessing/text_processor.py"
+            },
+            {
+                "title": "Inadequate Tokenization",
+                "details": "The word_tokenize function is used with the split method, which may lead to incorrect tokenization if the text contains punctuation next to words.",
+                "severity": 2,
+                "confidence": 1,
+                "tags": [
+                    "bug",
+                    "nlp"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 18,
+                        "end_line": 18,
+                        "proposal": "tokens = word_tokenize(text, format=\"text\", use_token_normalize=True)",
+                        "file": "src/preprocessing/text_processor.py",
+                        "affected_code": "18:         tokens = word_tokenize(text, format=\"text\", use_token_normalize=True).split()"
+                    }
+                ],
+                "id": 3,
+                "file": "src/preprocessing/text_processor.py"
             }
         ]
     },
-    "summary": "The code review of the `TextProcessor` class in `text_processor.py` reveals an inconsistent character set in the regular expression pattern, which can be improved for better consistency and readability, but does not demonstrate exceptional achievements worthy of an award.",
+    "summary": "The code review of the `TextProcessor` class in `text_processor.py` reveals several issues, including an inconsistent character set in the regular expression pattern, lack of input validation, and inadequate tokenization, which can be addressed with proposed changes to improve the code's readability, maintainability, and robustness. \n<!-- award -->\n\ud83e\uddd9\u200d\u2642\ufe0f REFACTORING ARCHMAGE \ud83e\uddd9\u200d\u2642\ufe0f\n\"You transformed the regular expression pattern into a more comprehensive and maintainable form, and though the rest of the code requires further refinement, this initial step radiates a glimmer of light instead of confusion, deserving a standing ovation from the coding magic school.\"",
     "number_of_processed_files": 1,
-    "total_issues": 1,
-    "created_at": "2026-02-19 23:06:35",
+    "total_issues": 3,
+    "created_at": "2026-02-19 23:07:52",
     "model": "llama-3.3-70b-versatile",
     "pipeline_out": {},
     "processing_warnings": [],
@@ -37,7 +79,7 @@
         "pull_request_id": null,
         "what": null,
         "against": null,
-        "commit_sha": "f1a02a67570b11efa94bc7fb1ef2933f1c076e1d",
+        "commit_sha": "adc4c8f55656fb976585f36c807a524431b1687b",
         "filters": "",
         "use_merge_base": true,
         "active_branch": "main"
