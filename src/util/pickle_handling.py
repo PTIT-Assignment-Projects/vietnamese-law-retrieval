@@ -16,4 +16,4 @@ def load_pickle_file(file_path: Path):
         try:
             return pickle.loads(contents)
         except pickle.UnpicklingError as e:
-            raise e
+            raise
