@@ -31,5 +31,5 @@ class InvertedIndex:
         """Get frequency of term (TF) in a document"""
         return self.doc_terms[doc_id].get(term, 0)
     def get_doc_frequency(self, term: str) -> int:
-        """Get the number of documents containing the given term (IDF)"""
-        return len(set(doc_id for doc_id, _ in self.index.get(term, [])))
+        """Get the number of documents containing the given term (DF)"""
+        return len(self.get_docs_contain_term(term))

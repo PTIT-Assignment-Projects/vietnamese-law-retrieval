@@ -22,13 +22,19 @@ class SearchEngine:
             cid = row[CID_COLUMN]
             raw_document = str(row[TEXT_COLUMN]) if row[TEXT_COLUMN] is not None else ""
             self.raw_documents[cid] = raw_document
-            save_to_pickle_file(RAW_CORPUS_DICT_PATH, self.raw_documents)
             processed = self.processor.process_text(raw_document)
             self.processed_documents[cid] = processed
-            save_to_pickle_file(PROCESSED_CORPUS_DICT_PATH, self.processed_documents)
+        save_to_pickle_file(RAW_CORPUS_DICT_PATH, self.raw_documents)
+        save_to_pickle_file(PROCESSED_CORPUS_DICT_PATH, self.processed_documents)
+
     def _load_processed_documents(self):
-        self.raw_documents = load_pickle_file(RAW_CORPUS_DICT_PATH)
-        self.processed_documents = load_pickle_file(PROCESSED_CORPUS_DICT_PATH)
+        try:
+            self.raw_documents = load_pickle_file(RAW_CORPUS_DICT_PATH)
+            self.processed_documents = load_pickle_file(PROCESSED_CORPUS_DICT_PATH)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                "Processed documents not found. Run process_documents() first."
+            ) from e
     def build_index(self):
         self._load_processed_documents()
         self.inverted_index.build(self.processed_documents)
