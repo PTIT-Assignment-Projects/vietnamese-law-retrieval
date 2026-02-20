@@ -1,54 +1,10 @@
 {
     "issues": {
-        "reviews/code-review-report.json": [
+        "src/model/boolean_retrieval.py": [
             {
-                "title": "Lack of Input Validation",
-                "details": "The function process_text does not validate its input. If text is None, the function will throw an error.",
-                "severity": 2,
-                "confidence": 1,
-                "tags": [
-                    "bug",
-                    "robustness"
-                ],
-                "affected_lines": [
-                    {
-                        "start_line": 14,
-                        "end_line": 14,
-                        "proposal": "if text is None:\n            raise ValueError(\"Input text cannot be None\")",
-                        "file": "reviews/code-review-report.json",
-                        "affected_code": "14:                     {"
-                    }
-                ],
-                "id": 1,
-                "file": "reviews/code-review-report.json"
-            },
-            {
-                "title": "Inadequate Tokenization",
-                "details": "The word_tokenize function is used with the split method, which may lead to incorrect tokenization if the text contains punctuation next to words.",
-                "severity": 2,
-                "confidence": 1,
-                "tags": [
-                    "bug",
-                    "nlp"
-                ],
-                "affected_lines": [
-                    {
-                        "start_line": 18,
-                        "end_line": 18,
-                        "proposal": "tokens = word_tokenize(text, format=\"text\", use_token_normalize=True)",
-                        "file": "reviews/code-review-report.json",
-                        "affected_code": "18:                         \"file\": \"src/preprocessing/text_processor.py\","
-                    }
-                ],
-                "id": 2,
-                "file": "reviews/code-review-report.json"
-            }
-        ],
-        "reviews/code-review-report.md": [
-            {
-                "title": "Inconsistent Character Set in Regular Expression Pattern",
-                "details": "The regular expression pattern has been changed to use Unicode character ranges, but the comment above it still mentions specific characters that are no longer matched by the pattern.",
-                "severity": 2,
+                "title": "Incomplete Class Definition",
+                "details": "The class BooleanRetrieval is defined but does not contain any methods or attributes, which may indicate an incomplete implementation.",
+                "severity": 3,
                 "confidence": 1,
                 "tags": [
                     "readability",
@@ -56,87 +12,107 @@
                 ],
                 "affected_lines": [
                     {
-                        "start_line": 19,
-                        "end_line": 20,
-                        "proposal": "valid_pattern = re.compile(\n            r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\")  # Updated pattern to match Unicode characters",
-                        "file": "reviews/code-review-report.md",
-                        "affected_code": "19: ```\n20: **Proposed change:**"
+                        "start_line": 1,
+                        "end_line": 3,
+                        "proposal": "class BooleanRetrieval:\n    \"\"\"Boolean retrieval model\"\"\"\n    def __init__(self):\n        pass",
+                        "file": "src/model/boolean_retrieval.py",
+                        "affected_code": "1: class BooleanRetrieval:\n2:     \"\"\"Boolean retrieval model\"\"\"\n3:     pass"
                     }
                 ],
-                "id": 3,
-                "file": "reviews/code-review-report.md"
+                "id": 1,
+                "file": "src/model/boolean_retrieval.py"
             },
             {
-                "title": "Lack of Input Validation",
-                "details": "The function process_text does not validate its input. If text is None, the function will throw an error.",
-                "severity": 1,
+                "title": "Lack of Documentation",
+                "details": "The class BooleanRetrieval has a docstring but it does not provide any meaningful information about the class's purpose, usage, or behavior.",
+                "severity": 3,
                 "confidence": 1,
                 "tags": [
-                    "bug",
-                    "robustness"
+                    "readability",
+                    "maintainability"
                 ],
                 "affected_lines": [
                     {
-                        "start_line": 14,
-                        "end_line": 14,
-                        "proposal": "if text is None:\n            raise ValueError(\"Input text cannot be None\")",
-                        "file": "reviews/code-review-report.md",
-                        "affected_code": "14: **Tags: readability, maintainability**"
+                        "start_line": 2,
+                        "end_line": 2,
+                        "proposal": "    \"\"\"Boolean retrieval model. This class is responsible for ...\"\"\"",
+                        "file": "src/model/boolean_retrieval.py",
+                        "affected_code": "2:     \"\"\"Boolean retrieval model\"\"\""
                     }
                 ],
-                "id": 4,
-                "file": "reviews/code-review-report.md"
-            },
-            {
-                "title": "Inadequate Tokenization",
-                "details": "The word_tokenize function is used with the split method, which may lead to incorrect tokenization if the text contains punctuation next to words.",
-                "severity": 2,
-                "confidence": 1,
-                "tags": [
-                    "bug",
-                    "nlp"
-                ],
-                "affected_lines": [
-                    {
-                        "start_line": 18,
-                        "end_line": 18,
-                        "proposal": "tokens = word_tokenize(text, format=\"text\", use_token_normalize=True)",
-                        "file": "reviews/code-review-report.md",
-                        "affected_code": "18: 20:             r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\""
-                    }
-                ],
-                "id": 5,
-                "file": "reviews/code-review-report.md"
+                "id": 2,
+                "file": "src/model/boolean_retrieval.py"
             }
         ],
-        "src/preprocessing/text_processor.py": [
+        "src/search_engine.py": [
             {
-                "title": "Inconsistent Naming Conventions",
-                "details": "The variable and function names should follow a consistent naming convention, such as using underscores to separate words.",
+                "title": "Inconsistent Method Naming",
+                "details": "The method 'process_documents' is used for both processing and saving documents, but then another method '_load_processed_documents' is introduced for loading the same documents. This inconsistency can lead to confusion.",
                 "severity": 3,
                 "confidence": 1,
                 "tags": [
                     "naming",
-                    "code-style"
+                    "maintainability"
                 ],
                 "affected_lines": [
                     {
-                        "start_line": 1,
-                        "end_line": 38,
-                        "proposal": "No specific proposal, as it requires refactoring the entire codebase to follow a consistent naming convention.",
-                        "file": "src/preprocessing/text_processor.py",
-                        "affected_code": "1: import re\n2: from typing import List\n3: \n4: from underthesea import text_normalize, word_tokenize\n5: \n6: from src.preprocessing.preprocessing import load_vietnamese_stopwords\n7: \n8: \n9: class TextProcessor:\n10:     def __init__(self):\n11:         self.stopwords = load_vietnamese_stopwords()\n12: \n13:     def process_text(self, text: str) -> List[str]:\n14:         if text is None:\n15:             raise ValueError(\"Input text cannot be None\")\n16:         words = text_normalize(text)\n17:         words = words.lower()\n18:         # invalid token\n19:         text = words.replace(\"\\ufffd\", \" \")\n20:         tokens = word_tokenize(text, format=\"text\", use_token_normalize=True).split()\n21:         valid_pattern = re.compile(\n22:             r\"^[a-z0-9_\\u00E0-\\u01FF\\u1EA0-\\u1EFF.-]+$\"\n23:         )\n24:         cleaned_tokens = []\n25:         for t in tokens:\n26:             # Only keep tokens that match our valid character set\n27:             if not valid_pattern.match(t):\n28:                 continue\n29: \n30:             # Finally, check for stopwords and length\n31:             if t not in self.stopwords and len(t) > 1:\n32:                 cleaned_tokens.append(t)\n33:         return cleaned_tokens\n34: \n35: def main():\n36:     processor = TextProcessor()\n37:     print(processor.process_text('Xin ch\u00e0o c\u00e1c b\u1ea1n, t\u00f4i t\u00ean l\u00e0 Tu\u1ea5n D\u01b0\u01a1ng'))\n38: main()"
+                        "start_line": 19,
+                        "end_line": 28,
+                        "proposal": "def process_and_save_documents(self):\n    corpus = load_data(CORPUS_PATH)\n    for _, row in corpus.iterrows():\n        cid = row[CID_COLUMN]\n        raw_document = str(row[TEXT_COLUMN]) if row[TEXT_COLUMN] is not None else \"\"\n        self.raw_documents[cid] = raw_document\n        processed = self.processor.process_text(raw_document)\n        self.processed_documents[cid] = processed\n    save_to_pickle_file(RAW_CORPUS_DICT_PATH, self.raw_documents)\n    save_to_pickle_file(PROCESSED_CORPUS_DICT_PATH, self.processed_documents)",
+                        "file": "src/search_engine.py",
+                        "affected_code": "19:     def process_documents(self):\n20:         corpus = load_data(CORPUS_PATH)\n21:         for _, row in corpus.iterrows():\n22:             cid = row[CID_COLUMN]\n23:             raw_document = str(row[TEXT_COLUMN]) if row[TEXT_COLUMN] is not None else \"\"\n24:             self.raw_documents[cid] = raw_document\n25:             save_to_pickle_file(RAW_CORPUS_DICT_PATH, self.raw_documents)\n26:             processed = self.processor.process_text(raw_document)\n27:             self.processed_documents[cid] = processed\n28:             save_to_pickle_file(PROCESSED_CORPUS_DICT_PATH, self.processed_documents)"
                     }
                 ],
-                "id": 6,
-                "file": "src/preprocessing/text_processor.py"
+                "id": 3,
+                "file": "src/search_engine.py"
+            },
+            {
+                "title": "Unused Variable",
+                "details": "The variable 'boolean_retrieval' and 'vsm' are initialized but never used in the provided code snippet.",
+                "severity": 3,
+                "confidence": 1,
+                "tags": [
+                    "maintainability",
+                    "readability"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 14,
+                        "end_line": 15,
+                        "proposal": "",
+                        "file": "src/search_engine.py",
+                        "affected_code": "14:         self.boolean_retrieval = None\n15:         self.vsm = None"
+                    }
+                ],
+                "id": 4,
+                "file": "src/search_engine.py"
+            },
+            {
+                "title": "Potential Bug: Missing Error Handling",
+                "details": "The method '_load_processed_documents' does not handle potential errors when loading the pickle files.",
+                "severity": 2,
+                "confidence": 1,
+                "tags": [
+                    "bug"
+                ],
+                "affected_lines": [
+                    {
+                        "start_line": 29,
+                        "end_line": 31,
+                        "proposal": "def _load_processed_documents(self):\n    try:\n        self.raw_documents = load_pickle_file(RAW_CORPUS_DICT_PATH)\n        self.processed_documents = load_pickle_file(PROCESSED_CORPUS_DICT_PATH)\n    except Exception as e:\n        # Handle the error",
+                        "file": "src/search_engine.py",
+                        "affected_code": "29:     def _load_processed_documents(self):\n30:         self.raw_documents = load_pickle_file(RAW_CORPUS_DICT_PATH)\n31:         self.processed_documents = load_pickle_file(PROCESSED_CORPUS_DICT_PATH)"
+                    }
+                ],
+                "id": 5,
+                "file": "src/search_engine.py"
             }
         ]
     },
-    "summary": "The code review of the `TextProcessor` class in `text_processor.py` reveals several issues, including an inconsistent character set in the regular expression pattern, lack of input validation, and inadequate tokenization, which can be addressed with proposed changes to improve the code's readability, maintainability, and robustness.\n<!-- award -->\n\ud83e\uddd9\u200d\u2642\ufe0f REFACTORING ARCHMAGE \ud83e\uddd9\u200d\u2642\ufe0f\n\"You transformed the regular expression pattern into a more comprehensive and maintainable form, and though the rest of the code requires further refinement, this initial step radiates a glimmer of light instead of confusion, deserving a standing ovation from the coding magic school.\"",
+    "summary": "The code review reveals several issues and areas for improvement in the provided code changes, including incomplete class definitions, inconsistent method naming, unused variables, and potential bugs, which can be addressed to enhance the code's readability, maintainability, and functionality. \n<!-- award -->\n\ud83e\uddd9\u200d\u2642\ufe0f REFACTORING ARCHMAGE \ud83e\uddd9\u200d\u2642\ufe0f\n\"You transformed the InvertedIndex class, making it more elegant and functional, like a master refactoring complex code into simplicity without losing its essence, a true coding magic.\"",
     "number_of_processed_files": 4,
-    "total_issues": 6,
-    "created_at": "2026-02-19 23:14:27",
+    "total_issues": 5,
+    "created_at": "2026-02-20 10:14:08",
     "model": "llama-3.3-70b-versatile",
     "pipeline_out": {},
     "processing_warnings": [],
@@ -146,9 +122,9 @@
         "pull_request_id": null,
         "what": null,
         "against": null,
-        "commit_sha": "c982021deba7648b1ab111560ce3d91a5c13156f",
+        "commit_sha": "9d47865e4e14fb9f2e1d5a1b25ff3811e29d1073",
         "filters": "",
         "use_merge_base": true,
-        "active_branch": "main"
+        "active_branch": "feat/inverted-index"
     }
 }
