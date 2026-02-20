@@ -1,3 +1,12 @@
+from typing import List, Tuple
+
+from src.indexing.inverted_index import InvertedIndex
+
+
 class BooleanRetrieval:
     """Boolean retrieval model"""
-    pass
+
+    def __init__(self, inverted_index: InvertedIndex):
+        self.index = inverted_index
+    def search(self, query_terms: List[str], operator: str = "AND") -> List[str]:
+        raise NotImplementedError("Boolean retrieval is not implemented yet.")

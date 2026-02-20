@@ -12,7 +12,9 @@ TEST_PATH = str(BASE / "data" / "test.csv")
 VIETNAMESE_STOPWORDS_FILE_PATH = str(BASE / "util_file" / "vietnamese-stopwords.txt")
 RAW_CORPUS_DICT_PATH = str(BASE / "util_file" / "raw_corpus.pkl")
 PROCESSED_CORPUS_DICT_PATH = str(BASE / "util_file" / "processed_corpus.pkl")
-
+INVERTED_INDEX_BUILT_PATH = str(BASE / "util_file" / "inverted_index.pkl")
+VSM_MODEL_INDEX_BUILT_PATH = str(BASE / "util_file" / "vsm_model_built.pkl")
+BM25_MODEL_INDEX_BUILT_PATH = str(BASE / "util_file" / "bm25_model_built.pkl")
 # COlUMN
 CID_COLUMN = "cid"
 TEXT_COLUMN = "text"
