@@ -8,6 +8,7 @@ class InvertedIndex:
         self.doc_lengths = {}
         self.doc_terms = defaultdict(Counter)
         self.term_doc_freq = {}  # key: term, value: number of docs containing term
+        self.term_docs = {}  # term -> set of doc_ids
         self.total_docs = 0
         self.avg_doc_length = 0
     def build(self, documents: Dict[str, List[str]]) -> None:
@@ -15,6 +16,7 @@ class InvertedIndex:
         self.doc_lengths = {}
         self.doc_terms = defaultdict(Counter)
         self.term_doc_freq = {}
+        self.term_docs = {}
         self.total_docs = len(documents)
         total_length = 0
         term_docs = defaultdict(set)  # term -> set of doc_ids
@@ -31,10 +33,11 @@ class InvertedIndex:
                 self.index[term].append((cid, pos))
                 term_docs[term].add(cid)
         self.avg_doc_length = total_length / self.total_docs if self.total_docs > 0 else 0
-        self.term_doc_freq = {term: len(docs) for term, docs in term_docs.items()}
+        self.term_docs = dict(term_docs)
+        self.term_doc_freq = {term: len(docs) for term, docs in self.term_docs.items()}
     def get_docs_contain_term(self, term: str) -> Set[str]:
         """Get document ids containing the given term"""
-        return set(doc_id for doc_id, _ in self.index.get(term, []))
+        return self.term_docs.get(term, set())
     def get_term_frequency(self, term: str, doc_id: str) -> int:
         """Get frequency of term (TF) in a document"""
         return self.doc_terms[doc_id].get(term, 0)
