@@ -11,6 +11,10 @@ class InvertedIndex:
         self.total_docs = 0
         self.avg_doc_length = 0
     def build(self, documents: Dict[str, List[str]]) -> None:
+        self.index = defaultdict(list)
+        self.doc_lengths = {}
+        self.doc_terms = defaultdict(Counter)
+        self.term_doc_freq = {}
         self.total_docs = len(documents)
         total_length = 0
         term_docs = defaultdict(set)  # term -> set of doc_ids
