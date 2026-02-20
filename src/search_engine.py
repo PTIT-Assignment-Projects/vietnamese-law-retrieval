@@ -1,11 +1,16 @@
 from collections import defaultdict
+from textwrap import dedent
+from typing import List, Tuple, Optional
 
 import pandas as pd
 
 from src.indexing.inverted_index import InvertedIndex
+from src.model.bm25 import OkapiBM25
+from src.model.vector_space_model import VectorSpaceModel
 from src.preprocessing.preprocessing import load_data
 from src.preprocessing.text_processor import TextProcessor
-from src.util.constant import CORPUS_PATH, CID_COLUMN, TEXT_COLUMN, RAW_CORPUS_DICT_PATH, PROCESSED_CORPUS_DICT_PATH
+from src.util.constant import CORPUS_PATH, CID_COLUMN, TEXT_COLUMN, RAW_CORPUS_DICT_PATH, PROCESSED_CORPUS_DICT_PATH, \
+    VSM_MODEL_INDEX_BUILT_PATH, BM25_MODEL_INDEX_BUILT_PATH, INVERTED_INDEX_BUILT_PATH
 from src.util.pickle_handling import save_to_pickle_file, load_pickle_file
 
 
@@ -14,8 +19,8 @@ class SearchEngine:
         self.processor = TextProcessor()
         self.inverted_index = InvertedIndex()
         self.boolean_retrieval = None
-        self.vsm = None
-        self.bm25 = None
+        self.vsm: Optional[VectorSpaceModel] = None
+        self.bm25: Optional[OkapiBM25] = None
         self.raw_documents = defaultdict(str)
         self.processed_documents = defaultdict(list)
     def process_documents(self):
@@ -38,14 +43,74 @@ class SearchEngine:
             raise FileNotFoundError(
                 "Processed documents not found. Run process_documents() first."
             ) from e
-    def build_index(self):
+    def _build_index(self):
         self._load_processed_documents()
         self.inverted_index.build(self.processed_documents)
+        save_to_pickle_file(INVERTED_INDEX_BUILT_PATH, self.inverted_index)
+        self.vsm = VectorSpaceModel(self.inverted_index)
+        save_to_pickle_file(VSM_MODEL_INDEX_BUILT_PATH, self.vsm)
+        self.bm25 = OkapiBM25(self.inverted_index)
+        save_to_pickle_file(BM25_MODEL_INDEX_BUILT_PATH, self.bm25)
+    def load_prebuilt_index(self):
+        try:
 
+            self._load_processed_documents()
+            self.inverted_index = load_pickle_file(INVERTED_INDEX_BUILT_PATH)
+            self.vsm = load_pickle_file(VSM_MODEL_INDEX_BUILT_PATH)
+            self.bm25 = load_pickle_file(BM25_MODEL_INDEX_BUILT_PATH)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                "Relevant model files not found. Run process_documents() and _build_index() first."
+            ) from e
+    def search(self, query: str, method: str = 'bm25', top_n: int = 10) -> List[Tuple[str, float]]:
+        """
+        Search for documents matching the query
+        :param query: Search query string.
+        :param method: 'boolean', 'vsm', 'bm25'. Defaults to 'bm25'
+        :param top_n: Top n results to return. Defaults to 10.
+        :return: List of (doc_id, score) tuples.
+        """
+        query_terms = self.processor.process_text(query)
+        if not query_terms:
+            return []
 
+        # search using correct method
+        match method:
+            case 'boolean':
+                return None
+            case 'vsm':
+                return self.vsm.search(query_terms, top_n)
+            case 'bm25':
+                return self.bm25.search(query_terms, top_n)
+            case _:
+                raise ValueError(f"Unknown method: {method}")
+
+    def display_results(self, results: List[Tuple[str, float]], query: str, method: str, max_length: int = 200):
+        """Display search results"""
+        print(dedent(f"""
+                {'=' * 80}
+                Query: '{query}'
+                Method: '{method}'
+                Found {len(results)} documents
+                {'=' * 80}"""))
+        for rank, (doc_id, score) in enumerate(results, 1):
+            raw_text = self.raw_documents.get(doc_id, "")
+            preview = raw_text[:max_length].replace('\n', ' ')
+            if len(raw_text) > max_length:
+                preview += "..."
+            print(dedent(f"""
+                        \x1B[32m{rank}. {doc_id}\x1B[0m
+                        Score: {score:.4f}
+                        Preview: {preview}
+                        """))
 
 def main():
+    query = ('cảng biển')
+    method = 'vsm'
     search_engine = SearchEngine()
-    search_engine.build_index()
+    # search_engine._build_index()
+    search_engine.load_prebuilt_index()
+    results = search_engine.search(query, method)
+    search_engine.display_results(results, query, method)
 if __name__ == "__main__":
     main()
