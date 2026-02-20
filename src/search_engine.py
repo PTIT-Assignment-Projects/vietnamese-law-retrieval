@@ -98,7 +98,7 @@ class SearchEngine:
                 Found {len(results)} documents
                 {'=' * 80}"""))
         for rank, (doc_id, score) in enumerate(results, 1):
-            raw_text = self.raw_documents.get(doc_id, "")
+            raw_text = self.raw_documents.get(doc_id) or ""
             preview = raw_text[:max_length].replace('\n', ' ')
             if len(raw_text) > max_length:
                 preview += "..."

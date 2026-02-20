@@ -1,5 +1,6 @@
 import math
-from typing import List, Tuple, Counter
+from collections import Counter
+from typing import List, Tuple
 
 from src.indexing.inverted_index import InvertedIndex
 from src.model.model import Model
@@ -56,10 +57,10 @@ class VectorSpaceModel(Model):
             doc_norm = 0
 
             # only consider terms appeared in both query and document
-            for term in query_terms:
+            for term, query_tfidf in query_vector.items():
                 if term in self.index.term_docs:
                     doc_tfidf = self.compute_tf_idf(term, doc_id)
-                    dot_product += query_vector[term] * doc_tfidf
+                    dot_product += query_tfidf * doc_tfidf
             # compute document norm
             for term in self.index.doc_terms[doc_id]:
                 doc_tfidf = self.compute_tf_idf(term, doc_id)
