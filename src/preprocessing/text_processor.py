@@ -30,4 +30,4 @@ class TextProcessor:
             # Finally, check for stopwords and length
             if t not in self.stopwords and len(t) > 1:
                 cleaned_tokens.append(t)
-        return list(set(cleaned_tokens))
+        return cleaned_tokens

@@ -31,6 +31,8 @@ class BooleanRetrieval:
             else:
                 second_term.append(term)
         print("first query terms: ", first_term, "second terms: ", second_term)
+        if operator == "":
+            operator = AND_OPERATOR
         if operator == AND_OPERATOR:
             # intersection all document sets
             result = set()
