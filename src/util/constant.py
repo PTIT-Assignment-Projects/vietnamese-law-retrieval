@@ -18,3 +18,13 @@ BM25_MODEL_INDEX_BUILT_PATH = str(BASE / "util_file" / "bm25_model_built.pkl")
 # COlUMN
 CID_COLUMN = "cid"
 TEXT_COLUMN = "text"
+
+# MODEL_NAME
+BOOLEAN_RETRIEVAL_NAME = "boolean"
+VSM_MODEL_NAME = "vsm"
+BM25_MODEL_NAME = "bm25"
+
+# BOOLEAN_OPERATOR
+AND_OPERATOR = "and"
+OR_OPERATOR = "or"
+NOT_OPERATOR = "not"
