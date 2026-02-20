@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+import pandas as pd
+
 from src.indexing.inverted_index import InvertedIndex
 from src.preprocessing.preprocessing import load_data
 from src.preprocessing.text_processor import TextProcessor
@@ -20,7 +22,8 @@ class SearchEngine:
         corpus = load_data(CORPUS_PATH)
         for _, row in corpus.iterrows():
             cid = row[CID_COLUMN]
-            raw_document = str(row[TEXT_COLUMN]) if row[TEXT_COLUMN] is not None else ""
+            text_value = row[TEXT_COLUMN]
+            raw_document = str(text_value) if pd.notna(text_value) else None
             self.raw_documents[cid] = raw_document
             processed = self.processor.process_text(raw_document)
             self.processed_documents[cid] = processed
@@ -44,4 +47,5 @@ class SearchEngine:
 def main():
     search_engine = SearchEngine()
     search_engine.build_index()
-main()
+if __name__ == "__main__":
+    main()
