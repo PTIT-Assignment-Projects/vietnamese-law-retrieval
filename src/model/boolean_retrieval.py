@@ -9,4 +9,4 @@ class BooleanRetrieval:
     def __init__(self, inverted_index: InvertedIndex):
         self.index = inverted_index
     def search(self, query_terms: List[str], operator: str = "AND") -> List[str]:
-        pass
+        raise NotImplementedError("Boolean retrieval is not implemented yet.")

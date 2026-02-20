@@ -61,7 +61,7 @@ class VectorSpaceModel(Model):
                     doc_tfidf = self.compute_tf_idf(term, doc_id)
                     dot_product += query_vector[term] * doc_tfidf
             # compute document norm
-            for term, freq in self.index.doc_terms[doc_id].items():
+            for term in self.index.doc_terms[doc_id]:
                 doc_tfidf = self.compute_tf_idf(term, doc_id)
                 doc_norm += doc_tfidf ** 2
             doc_norm = math.sqrt(doc_norm)

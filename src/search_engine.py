@@ -77,10 +77,14 @@ class SearchEngine:
         # search using correct method
         match method:
             case 'boolean':
-                return None
+                raise NotImplementedError("Boolean retrieval is not implemented yet.")
             case 'vsm':
+                if self.vsm is None:
+                    raise RuntimeError("VSM model not loaded. Call load_prebuilt_index() or _build_index() first.")
                 return self.vsm.search(query_terms, top_n)
             case 'bm25':
+                if self.bm25 is None:
+                    raise RuntimeError("BM25 model not loaded. Call load_prebuilt_index() or _build_index() first.")
                 return self.bm25.search(query_terms, top_n)
             case _:
                 raise ValueError(f"Unknown method: {method}")
