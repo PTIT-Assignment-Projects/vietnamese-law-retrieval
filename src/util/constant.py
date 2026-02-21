@@ -34,3 +34,8 @@ BM25_MODEL_NAME = "bm25"
 AND_OPERATOR = "and"
 OR_OPERATOR = "or"
 NOT_OPERATOR = "not"
+
+
+# ELastic search
+PROCESSED_INDEX_NAME = "processed_text_index"
+NORMAL_INDEX_NAME = "normal_index"

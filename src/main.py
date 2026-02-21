@@ -1,4 +1,5 @@
 from src.evaluation.evaluator_service import EvaluatorService
+from src.indexing.elasticsearch_indexing import ElasticSearchIndexing
 from src.search_engine import SearchEngine
 from src.util import constant
 
@@ -16,5 +17,9 @@ def main():
     # evaluator_service = EvaluatorService(search_engine)
     # evaluator_service.load_ground_truth()
     # evaluator_service.run_evaluation_and_save()
+
+
+    elasticsearch_index = ElasticSearchIndexing()
+    elasticsearch_index.ingest_to_elasticsearch()
 if __name__ == "__main__":
     main()
