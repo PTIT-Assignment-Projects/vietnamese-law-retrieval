@@ -30,12 +30,14 @@ def reciprocal_rank(retrieved_ids: List[str], true_ids: Iterable[str]) -> float:
             return 1.0 / i
     return 0.0
 def mean_reciprocal_rank(retrieved_ids: List[List[str]], true_ids: List[Iterable[str]]) -> float:
-    if not retrieved_ids:
+    if not retrieved_ids or not true_ids:
         return 0.0
     rr_values = [
         reciprocal_rank(r, rel)
         for r, rel in zip(retrieved_ids, true_ids)
     ]
+    if not rr_values:
+        return 0.0
     return sum(rr_values) / len(rr_values)
 def calculate_average_precision(retrieved_ids: List[str], true_ids: List[str]) -> float:
     if not true_ids:

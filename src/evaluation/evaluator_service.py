@@ -32,6 +32,8 @@ class EvaluatorService:
         """
         if isinstance(cid_value, list):
             return [str(c) for c in cid_value]
+        if cid_value is None or pd.isna(cid_value):
+            return []
         try:
             parsed = ast.literal_eval(str(cid_value))
             if isinstance(parsed, list):
