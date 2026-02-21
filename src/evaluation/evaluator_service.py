@@ -1,4 +1,5 @@
 import ast
+import logging
 from typing import List, Dict
 
 import pandas as pd
@@ -13,8 +14,8 @@ from src.util.pickle_handling import save_to_pickle_file, load_pickle_file
 
 
 class EvaluatorService:
-    DEFAULT_K_VALUES = [1, 2, 3, 5, 10]
-    MODEL_LIST = [VSM_MODEL_NAME, BM25_MODEL_NAME, BOOLEAN_RETRIEVAL_NAME]
+    DEFAULT_K_VALUES = (1, 2, 3, 5, 10)
+    MODEL_LIST = (VSM_MODEL_NAME, BM25_MODEL_NAME, BOOLEAN_RETRIEVAL_NAME)
     def __init__(self, search_engine: SearchEngine):
         self.processor = TextProcessor()
         self.search_engine = search_engine
@@ -53,7 +54,6 @@ class EvaluatorService:
         try:
             self.ground_truth = load_pickle_file(constant.GROUND_TRUTH_EVALUATION_DOCUMENT_PATH)
             self.raw_documents = load_pickle_file(constant.RAW_EVALUATION_DOCUMENT_PATH)
-            print(len(self.raw_documents))
         except FileNotFoundError as e:
             raise FileNotFoundError(
                 "Processed documents not found. Run build_ground_truth() first."
@@ -70,6 +70,7 @@ class EvaluatorService:
                 results = self.search_engine.search(question, method=method, top_n=top_n)
                 retrieved_ids = [str(doc_id) for doc_id, _ in results]
             except Exception as e:
+                logging.warning(f"Search failed for qid={qid}, method={method}")
                 retrieved_ids = []
             all_retrieved.append(retrieved_ids)
 

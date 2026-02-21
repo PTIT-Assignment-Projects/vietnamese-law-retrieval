@@ -1,17 +1,19 @@
 from typing import List, Iterable
 
 
-def calculate_precision_at_k(retrieved_ids: List[str], true_ids: List[str], k) -> float:
+def calculate_precision_at_k(retrieved_ids: List[str], true_ids: List[str], k: int) -> float:
     if k == 0:
         return 0.0
     k_retrieved = retrieved_ids[:k]
-    hits = len([rid for rid in k_retrieved if rid in true_ids])
+    true_set = set(true_ids)
+    hits = sum(1 for rid in k_retrieved if rid in true_set)
     return hits / k
 def calculate_recall_at_k(retrieved_ids: List[str], true_ids: List[str], k) -> float:
     if not true_ids:
         return 0.0
     k_retrieved = retrieved_ids[:k]
-    hits = len([rid for rid in k_retrieved if rid in true_ids])
+    true_set = set(true_ids)
+    hits = sum(1 for rid in k_retrieved if rid in true_set)
     return hits / len(true_ids)
 def calculate_f1_at_k(retrieved_ids: List[str], true_ids: List[str], k: int) -> float:
     if not true_ids or k <= 0:
@@ -38,10 +40,11 @@ def mean_reciprocal_rank(retrieved_ids: List[List[str]], true_ids: List[Iterable
 def calculate_average_precision(retrieved_ids: List[str], true_ids: List[str]) -> float:
     if not true_ids:
         return 0.0
+    true_set = set(true_ids)
     average_precision = 0.0
     hits = 0
     for i, rid in enumerate(retrieved_ids):
-        if rid in true_ids:
+        if rid in true_set:
             hits += 1
             average_precision += hits / (i + 1)
     return average_precision / len(true_ids)
