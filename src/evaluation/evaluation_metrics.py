@@ -8,7 +8,7 @@ def calculate_precision_at_k(retrieved_ids: List[str], true_ids: List[str], k: i
     true_set = set(true_ids)
     hits = sum(1 for rid in k_retrieved if rid in true_set)
     return hits / k
-def calculate_recall_at_k(retrieved_ids: List[str], true_ids: List[str], k) -> float:
+def calculate_recall_at_k(retrieved_ids: List[str], true_ids: List[str], k: int) -> float:
     if not true_ids:
         return 0.0
     k_retrieved = retrieved_ids[:k]

@@ -66,12 +66,15 @@ class EvaluatorService:
         per_query_results: List[Dict] = []
         total = len(self.raw_documents)
         for qid, question in self.raw_documents.items():
-            true_ids = self.ground_truth[qid]
+            true_ids = self.ground_truth.get(qid, [])
+            if not true_ids:
+                logging.warning(f"No ground truth found for qid={qid}, skipping")
+                continue
             all_relevant.append(true_ids)
             try:
                 results = self.search_engine.search(question, method=method, top_n=top_n)
                 retrieved_ids = [str(doc_id) for doc_id, _ in results]
-            except Exception as e:
+            except Exception:
                 logging.warning(f"Search failed for qid={qid}, method={method}")
                 retrieved_ids = []
             all_retrieved.append(retrieved_ids)
