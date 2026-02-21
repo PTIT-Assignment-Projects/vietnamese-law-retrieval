@@ -11,8 +11,10 @@ def main():
     search_engine.load_prebuilt_index()
     # results = search_engine.search(query, method)
     # search_engine.display_results(results, query, method)
-    evaluator_service = EvaluatorService(search_engine)
-    evaluator_service.load_ground_truth()
-    evaluator_service.run_evaluation_and_save()
+
+
+    # evaluator_service = EvaluatorService(search_engine)
+    # evaluator_service.load_ground_truth()
+    # evaluator_service.run_evaluation_and_save()
 if __name__ == "__main__":
     main()

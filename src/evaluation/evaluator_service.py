@@ -53,6 +53,7 @@ class EvaluatorService:
         try:
             self.ground_truth = load_pickle_file(constant.GROUND_TRUTH_EVALUATION_DOCUMENT_PATH)
             self.raw_documents = load_pickle_file(constant.RAW_EVALUATION_DOCUMENT_PATH)
+            print(len(self.raw_documents))
         except FileNotFoundError as e:
             raise FileNotFoundError(
                 "Processed documents not found. Run build_ground_truth() first."
