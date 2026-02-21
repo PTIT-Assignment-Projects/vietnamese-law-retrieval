@@ -30,15 +30,17 @@ class BooleanRetrieval:
                 first_term.append(term)
             else:
                 second_term.append(term)
-        print("first query terms: ", first_term, "second terms: ", second_term)
+        # print("first query terms: ", first_term, "second terms: ", second_term)
         if operator == "":
             operator = AND_OPERATOR
         if operator == AND_OPERATOR:
             # intersection all document sets
-            result = set()
-            for term in first_term:
-                result = self.index.get_docs_contain_term(term)
-            for term in second_term:
+            all_and_terms = first_term + second_term
+            if not all_and_terms:
+                return []
+
+            result = self.index.get_docs_contain_term(all_and_terms[0])
+            for term in all_and_terms[1:]:
                 result = result.intersection(self.index.get_docs_contain_term(term))
             return list(result)
         elif operator == OR_OPERATOR:
