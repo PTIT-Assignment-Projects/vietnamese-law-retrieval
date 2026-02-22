@@ -84,14 +84,9 @@ class ElasticsearchEvaluator:
         return aggregated
     def run_evaluation_and_save(self) -> None:
         results = []
-        is_normal_index =True
-        result = self.evaluate(is_normal_index=is_normal_index)
-        result["method"] = "normal_index" if is_normal_index else "processed_index"
-        results.append(result)
-
-        is_normal_index = False
-        result = self.evaluate(is_normal_index=is_normal_index)
-        result["method"] = "normal_index" if is_normal_index else "processed_index"
-        results.append(result)
+        for is_normal_index in (True, False):
+            result = self.evaluate(is_normal_index=is_normal_index)
+            result["method"] = "normal_index" if is_normal_index else "processed_index"
+            results.append(result)
         df = pd.DataFrame(results)
         df.to_csv(EVALUATION_ES_RESULT_FILE_PATH, index = False)
