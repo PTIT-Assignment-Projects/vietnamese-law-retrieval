@@ -20,6 +20,12 @@ def main():
 
 
     elasticsearch_index = ElasticSearchIndexing()
-    elasticsearch_index.ingest_to_elasticsearch()
+    query = 'hải quan quy định'
+    # print(elasticsearch_index.search(query))
+    # print(elasticsearch_index.search(query, is_normal_index=False))
+    elasticsearch_index.search(query)
+    print("PROCESSED QUERY ============")
+    elasticsearch_index.search(query, is_normal_index=False)
+    # elasticsearch_index.ingest_to_elasticsearch()
 if __name__ == "__main__":
     main()

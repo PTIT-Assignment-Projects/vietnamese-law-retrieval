@@ -95,17 +95,17 @@ class EvaluatorService:
             per_query_results.append(query_metrics)
         aggregated: Dict = {}
         for k in self.k_values:
-            aggregated[f"precision@{k}"] = self._mean(
+            aggregated[f"precision@{k}"] = self.mean(
                 [q[f"precision@{k}"] for q in per_query_results]
             )
-            aggregated[f"recall@{k}"] = self._mean(
+            aggregated[f"recall@{k}"] = self.mean(
                 [q[f"recall@{k}"] for q in per_query_results]
             )
-            aggregated[f"f1@{k}"] = self._mean(
+            aggregated[f"f1@{k}"] = self.mean(
                 [q[f"f1@{k}"] for q in per_query_results]
             )
         aggregated["mrr"] = mean_reciprocal_rank(all_retrieved, all_relevant)
-        aggregated["map"] = self._mean(
+        aggregated["map"] = self.mean(
             [q["ap"] for q in per_query_results]
         )
         aggregated["total_queries"] = total
@@ -121,5 +121,5 @@ class EvaluatorService:
 
 
     @staticmethod
-    def _mean(values: List[float]) -> float:
+    def mean(values: List[float]) -> float:
         return sum(values) / len(values) if values else 0.0

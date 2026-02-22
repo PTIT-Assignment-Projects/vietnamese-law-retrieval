@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch, helpers
@@ -36,9 +36,8 @@ class ElasticSearchIndexing:
         self._create_index_if_not_exists(PROCESSED_INDEX_NAME)
         self._create_index_if_not_exists(NORMAL_INDEX_NAME)
     def _create_index_if_not_exists(self, index_name: str) -> None:
-        if self.es.indices.exists(index = index_name):
-            self.es.indices.delete(index = index_name)
-        self.es.indices.create(index = index_name, body = self.mapping)
+        if not self.es.indices.exists(index = index_name):
+            self.es.indices.create(index = index_name, body = self.mapping)
     def _load_processed_documents(self):
         try:
             self.raw_documents = load_pickle_file(RAW_CORPUS_DICT_PATH)
@@ -70,3 +69,24 @@ class ElasticSearchIndexing:
         print(f"{success} documents index in normal index, {failed} failed")
         success, failed = helpers.bulk(self.es, self.ingest_processed_index())
         print(f"{success} documents index in processed index, {failed} failed")
+    def search(self, query: str, top_n: int = 10, is_normal_index = True):
+        if not is_normal_index:
+            query = self.processor.process_text_join_for_es(query)
+
+        index_name = NORMAL_INDEX_NAME if is_normal_index else PROCESSED_INDEX_NAME
+        query_es = {
+            "query": {
+                "match": {
+                    "content": query
+                }
+            }
+        }
+
+        resp = self.es.search(
+            index=index_name,
+            body=query_es,
+            size=top_n,
+            track_scores=True,
+            explain=True
+        )
+        return resp["hits"]["hits"]
