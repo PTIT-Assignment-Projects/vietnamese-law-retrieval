@@ -48,7 +48,7 @@ class ElasticSearchIndexing:
                 "Processed documents not found. Run process_documents() first."
             ) from e
     def ingest_normal_index(self):
-        for doc_id, text in self.raw_documents:
+        for doc_id, text in self.raw_documents.items():
             yield {
                 "_index": NORMAL_INDEX_NAME,
                 "_id": doc_id,
@@ -57,7 +57,7 @@ class ElasticSearchIndexing:
                 }
             }
     def ingest_processed_index(self):
-        for doc_id, token_list in self.processed_documents:
+        for doc_id, token_list in self.processed_documents.items():
             yield {
                 "_index": PROCESSED_INDEX_NAME,
                 "_id": doc_id,
