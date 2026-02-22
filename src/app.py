@@ -1,14 +1,38 @@
+import sys
+from pathlib import Path
+
+# Add the project root to sys.path to handle 'src' imports
+root_path = Path(__file__).resolve().parent.parent
+if str(root_path) not in sys.path:
+    sys.path.insert(0, str(root_path))
+
 import streamlit as st
-import pandas as pd
-from src.search_engine import SearchEngine
 from src.indexing.elasticsearch_indexing import ElasticSearchIndexing
+from src.search_engine import SearchEngine
 from src.util import constant
+
+
+@st.cache_resource
+def get_engines():
+    search_engine = SearchEngine()
+    try:
+        search_engine.load_prebuilt_index()
+    except Exception as e:
+        st.warning(f"Note: Some local models might not be built yet. Error: {e}")
+    
+    try:
+        es_engine = ElasticSearchIndexing()
+    except Exception as e:
+        st.error(f"Failed to connect to Elasticsearch: {e}")
+        es_engine = None
+        
+    return search_engine, es_engine
 
 class LawRetrievalApp:
     def __init__(self):
         self._setup_page()
         self._setup_styles()
-        self.search_engine, self.es_engine = self._init_engines()
+        self.search_engine, self.es_engine = get_engines()
 
     def _setup_page(self):
         st.set_page_config(
@@ -52,22 +76,6 @@ class LawRetrievalApp:
             }
         </style>
         """, unsafe_allow_html=True)
-
-    @st.cache_resource(_self=True)
-    def _init_engines(_self):
-        search_engine = SearchEngine()
-        try:
-            search_engine.load_prebuilt_index()
-        except Exception as e:
-            st.warning(f"Note: Some local models might not be built yet. Error: {e}")
-        
-        try:
-            es_engine = ElasticSearchIndexing()
-        except Exception as e:
-            st.error(f"Failed to connect to Elasticsearch: {e}")
-            es_engine = None
-            
-        return search_engine, es_engine
 
     def _render_sidebar(self):
         with st.sidebar:
@@ -149,7 +157,7 @@ class LawRetrievalApp:
                 st.warning("Please enter a query first.")
 
         st.divider()
-        st.caption("Developed for PTIT Vietnamese Law Retrieval Assignment")
+        st.caption("Developed by Duong Vu with the help of Antigravity IDE, Github Copilot and reviewed by CodeRabbit")
 
 if __name__ == "__main__":
     app = LawRetrievalApp()
