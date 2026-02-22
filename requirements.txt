@@ -2,3 +2,4 @@ pandas==3.0.0
 underthesea==9.2.11
 elasticsearch==9.2.1
 python-dotenv==1.1.1
+streamlit==1.19.0
