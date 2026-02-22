@@ -29,18 +29,19 @@ class ElasticsearchEvaluator:
             self.raw_documents = load_pickle_file(RAW_EVALUATION_DOCUMENT_PATH)
         except FileNotFoundError as e:
             raise FileNotFoundError(
-                "Processed documents not found. Run build_ground_truth() first."
+                "Ground-truth evaluation files not found. Run build_ground_truth() first."
             ) from e
     def evaluate(self, top_n: int = 10, is_normal_index = True) -> Dict:
         all_retrieved: List[List[str]] = []
         all_relevant: List[List[str]] = []
         per_query_results: List[Dict] = []
-        total = len(self.raw_documents)
+        total = 0
         for qid, question in self.raw_documents.items():
             true_ids = self.ground_truth.get(qid, [])
             if not true_ids:
                 logging.warning(f"No ground truth found for qid={qid}, skipping")
                 continue
+            total += 1
             all_relevant.append(true_ids)
             try:
                 results = self.es.search(question, top_n=top_n, is_normal_index=is_normal_index)
@@ -85,12 +86,12 @@ class ElasticsearchEvaluator:
         results = []
         is_normal_index =True
         result = self.evaluate(is_normal_index=is_normal_index)
-        result["is_normal_index"] = is_normal_index
+        result["method"] = "normal_index" if is_normal_index else "processed_index"
         results.append(result)
 
         is_normal_index = False
         result = self.evaluate(is_normal_index=is_normal_index)
-        result["is_normal_index"] = is_normal_index
+        result["method"] = "normal_index" if is_normal_index else "processed_index"
         results.append(result)
         df = pd.DataFrame(results)
         df.to_csv(EVALUATION_ES_RESULT_FILE_PATH, index = False)

@@ -31,7 +31,7 @@ class ElasticSearchIndexing:
         self._load_processed_documents()
         self._connect_to_client()
     def _connect_to_client(self):
-        elastic_host = os.getenv("ELASTIC_HOST", "localhost:9092")
+        elastic_host = os.getenv("ELASTIC_HOST", "http://localhost:9200")
         self.es = Elasticsearch(elastic_host)
         self._create_index_if_not_exists(PROCESSED_INDEX_NAME)
         self._create_index_if_not_exists(NORMAL_INDEX_NAME)
@@ -65,14 +65,15 @@ class ElasticSearchIndexing:
                 }
             }
     def ingest_to_elasticsearch(self):
-        success, failed = helpers.bulk(self.es, self.ingest_normal_index())
+        success, failed = helpers.bulk(self.es, self.ingest_normal_index(), raise_on_error=False, stats_only=True)
         print(f"{success} documents index in normal index, {failed} failed")
-        success, failed = helpers.bulk(self.es, self.ingest_processed_index())
+        success, failed = helpers.bulk(self.es, self.ingest_processed_index(), raise_on_error=False, stats_only=True)
         print(f"{success} documents index in processed index, {failed} failed")
     def search(self, query: str, top_n: int = 10, is_normal_index = True):
         if not is_normal_index:
             query = self.processor.process_text_join_for_es(query)
-
+        if not query:
+            return []
         index_name = NORMAL_INDEX_NAME if is_normal_index else PROCESSED_INDEX_NAME
         query_es = {
             "query": {
