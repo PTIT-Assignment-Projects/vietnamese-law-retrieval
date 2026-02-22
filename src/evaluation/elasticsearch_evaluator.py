@@ -2,7 +2,6 @@ import logging
 from typing import List, Dict
 
 import pandas as pd
-from dotenv import load_dotenv
 
 from src.evaluation.evaluation_metrics import calculate_precision_at_k, calculate_recall_at_k, calculate_f1_at_k, \
     reciprocal_rank, calculate_average_precision, mean_reciprocal_rank
