@@ -1,0 +1,408 @@
+\documentclass[../BTL.tex]{subfiles}
+\begin{document}
+\section{Tập dữ liệu}
+Tập dữ liệu là tập gồm các văn bản luật Việt Nam, các câu hỏi và danh sách các tài liệu liên quan cho câu hỏi đó được đăng trên trang Huggingface \cite{dataset}. Các văn bản sẽ được đánh chỉ mục và xếp hạng dựa trên TF-IDF và BM25, sau đó khi đánh giá sẽ dùng cả tập train và tập test gộp lại, lấy 2000 mẫu đầu tiên (do giới hạn về phần cứng thiết bị) để chạy đánh giá và lấy kết quả.
+
+
+\subsection{Tập văn bản}
+Tập văn bản được lưu trong file corpus.csv với 2 cột:
+\begin{itemize}
+    \item cid: ID của văn bản
+    \item text: nội dung đầy đủ của đoạn hoặc điều luật
+\end{itemize}
+
+Có tổng cộng 222981 tài liệu, mỗi tài liệu là một đoạn văn bản pháp luật (có thể là một điều, khoản, điểm)
+
+\subsection{Tập dữ liệu huấn luyện và tập dữ liệu kiểm thử}
+Do đề tài sử dụng những phương pháp đánh giá điểm không phải huấn luyện mô hình, do đó để đánh giá mô hình nhóm sử dụng kết hợp cả 2 tập dữ liệu huấn luyện và kiểm thử. Tuy nhiên do giới hạn phần cứng thiết bị, nhóm chỉ sử dụng 2000 mẫu đầu tiên để tiến hành đánh giá. Tập dữ liệu có cấu trúc các cột như sau:
+
+
+\begin{tabular}{|l|l|l|}
+\hline
+Cột & Kiểu & Mô tả \\ \hline
+\texttt{qid} & int & ID câu hỏi \\ \hline
+\texttt{question} & string & Câu hỏi \\ \hline
+\texttt{cid} & string (list) & Danh sách ID văn bản liên quan \\ \hline
+\texttt{context\_list} & string (list) & Nội dung đoạn văn liên quan \\ \hline
+\end{tabular}
+
+
+Tổng số câu hỏi của tập dữ liệu huấn luyện là 9541 và tập dữ liệu kiểm thử là 3184. Ta lấy 2000 mẫu đầu tiên để làm nhiệm vụ đánh giá hệ thống truy xuất thông tin. Trong số tổng cộng các tài liệu thì mỗi truy vấn chỉ có 1 hoặc một vài tài liệu liên quan. Điều này cho thấy tỉ lệ mẫu dương tính (positive) thấp
+
+
+\section{Tiền xử lý văn bản}
+Đề tài sử dụng thư viện underthesea để chuẩn hóa văn bản và tách từ (tokenize). Kết quả của bước này là danh sách các token, mỗi token nếu có 2 từ trở lên sẽ được nối với nhau bằng dấu "\_". Sau khi tách từ sẽ đến bước loại bỏ từ dừng. Với danh sách từ dừng, đề tài sử dụng danh sách từ dừng của tác giả trên Github \cite{vietnamese_stopwords}. 
+
+\section{Sử dụng Elasticsearch}
+
+\subsection{Xây dựng chỉ mục}
+Với bước xây dựng chỉ mục, đề tài sử dụng 2 cách:
+\begin{itemize}
+    \item Dùng chỉ mục mặc định của Elasticsearch
+    \item Tiến hành tách từ tiếng Việt và nối lại theo dấu cách và đưa vào chỉ mục của Elasticsearch
+\end{itemize}
+Và sau đó tiến hành so sánh kết quả đánh giá trên tập kiểm thử với 2 phương pháp này.
+
+
+\subsection{Mapping}
+Với trường content trong dữ liệu thì kiểu dữ liệu khi ánh xạ vào chỉ mục của Elasticsearch là text, Elasticsearch sẽ phân tích, phân tách nội dung thành các token riêng lẻ và phù hợp cho việc tìm kiếm tài liệu chứa các từ. Tuy nhiên không thể dùng cho sắp xếp, tổng hợp hoặc tìm kiếm chính xác tuyệt đối (exact match). Phần tiếp theo của cấu hình mapping là phần analyzer, sử dụng bộ phân tích chuẩn. Bộ phân tích này của Elasticsearch gồm 3 bộ:
+
+\begin{itemize}
+    \item Tokenizer: tách văn bản thành từng token theo dấu cách, dấu câu
+    \item Lowercase filter: chuyển về chữ thường
+    \item Stop Token Filter: Loại bỏ từ dừng tiếng Anh mặc định
+\end{itemize}
+
+
+Phần tiếp theo là trường keywords - tạo thêm một trường con content.keyword bên cạnh content. Bảng \ref{tab:content-vs-content-keyword} so sánh giữa 2 trường content và content.keyword.
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+Thuộc tính & content (text) & content.keyword (keyword) \\ \hline
+Loại & Full-text & Exact match \\ \hline
+Phân tích & Có (tokenize) & Không (giữ nguyên) \\ \hline
+Dùng cho & Match query, search & Sắp xếp, tổng hợp, lọc \\ \hline
+Ví dụ & Tìm một từ trong văn bản & So sánh chính xác chuỗi \\ \hline
+\end{tabular}
+\caption{So sánh trường \texttt{content} và trường \texttt{content.keyword}}
+\label{tab:content-vs-content-keyword}
+\end{table}
+
+Khi phân tích tác động đến kết quả đánh giá, dễ thấy rằng với ngôn ngữ tiếng Việt, với chỉ mục đã được tách từ sử dụng thư viện underthesea rất có khả năng cho kết quả tốt hơn khi sử dụng cách tách từ chuẩn của Elasticsearch vì ngôn ngữ mặc định áp dụng của Elasticsearch là tiếng Anh.
+
+\section{Xây dựng chỉ mục}
+Đề tài xây dựng chỉ mục đảo phục vụ cho các mô hình xác suất để tính điểm độ liên quan với các truy vấn. Thuật toán xây dựng chỉ mục đảo được mô tả dưới dạng mã giả như sau:
+
+\begin{algorithm}[H]
+\caption{BuildInvertedIndex}
+\KwIn{documents: Dict[doc\_id, List[term]]}
+\KwOut{
+  index: Dict[term, List[(doc\_id, pos)]],\\
+  doc\_lengths: Dict[doc\_id, int],\\
+  doc\_terms: Dict[doc\_id, Dict[term, count]],\\
+  term\_docs: Dict[term, Set[doc\_id]],\\
+  term\_doc\_freq: Dict[term, int],\\
+  avg\_doc\_length: float
+}
+total\_docs $\leftarrow$ len(documents)\;
+total\_length $\leftarrow$ 0\;
+index $\leftarrow$ \{\}\;
+doc\_lengths $\leftarrow$ \{\}\;
+doc\_terms $\leftarrow$ \{\}\;
+term\_docs $\leftarrow$ \{\}\;
+\ForEach{$(cid, terms)$ in documents}{
+  doc\_length $\leftarrow$ len(terms)\;
+  doc\_lengths[cid] $\leftarrow$ doc\_length\;
+  total\_length $\leftarrow$ total\_length + doc\_length\;
+  doc\_terms[cid] $\leftarrow$ Counter(terms)\;
+  \ForEach{$(pos, term)$ in enumerate(terms)}{
+    \If{$term \notin index$}{
+      index[term] $\leftarrow$ []\;
+    }
+    index[term].append((cid, pos))\;
+    \If{$term \notin term\_docs$}{
+      term\_docs[term] $\leftarrow$ \{\}\;
+    }
+    term\_docs[term].add(cid)\;
+  }
+}
+\If{total\_docs > 0}{
+  avg\_doc\_length $\leftarrow$ total\_length / total\_docs\;
+}
+\Else{
+  avg\_doc\_length $\leftarrow$ 0\;
+}
+\ForEach{$term$ in term\_docs}{
+  term\_doc\_freq[term] $\leftarrow$ |term\_docs[term]|\;
+}
+\Return{index, doc\_lengths, doc\_terms, term\_docs, term\_doc\_freq, avg\_doc\_length}\;
+\end{algorithm}
+
+
+Chi tiết các thành phần của lớp chỉ mục đảo:
+\begin{table}[ht]
+\centering
+\begin{tabular}{lll}
+\toprule
+Thành phần & Mô tả & Ví dụ \\
+\midrule
+\texttt{index} & Term -> [(doc\_id, pos)] & "thuế": [(100,0),(100,5),(205,3)] \\
+\texttt{doc\_lengths} & Độ dài mỗi doc (token) & {0:45, 1:120, \dots} \\
+\texttt{doc\_terms} & Tần suất term trong doc & 0: "thuế":3, "luật":1 \\
+\texttt{term\_doc\_freq} & Document frequency (DF) & "thuế": 5420 \\
+\texttt{term\_docs} & Tập doc chứa term & "thuế": {0,100,205,\dots} \\
+\texttt{total\_docs} & Tổng số documents & 222981 \\
+\texttt{avg\_doc\_length} & Độ dài TB & \textasciitilde XX tokens/doc \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Các phương pháp truy xuất}
+Đề tài xây dựng 3 phương pháp truy xuất chính: Truy vấn kiểu Boolean cơ bản, truy vấn xếp hạng sử dụng TF-IDF và truy vấn xếp hạng sử dụng BM25. Ngoài ra còn có truy vấn sử dụng Elasticsearch. 
+
+
+\subsection{Truy vấn boolean}
+Mô hình truy xuất boolean sử dụng các toán tử logic (AND, OR, NOT) trên posting lists của inverted index. Mô hình không có xếp hạng - kết quả chỉ là "có" hoặc "không". Cách cài đặt và hoạt động của mô hình truy vấn boolean tương đối đơn giản. Khi nhận vào một câu truy vấn, sẽ tách làm các từ trước toán tử và sau toán tử, nếu không có toán tử thì mặc định là toán tử AND. Ở đề tài này chỉ sử dụng mô hình truy vấn boolean đơn giản chỉ dùng một toán tử logic. Với toán tử giao thì lấy giao của tất cả các tài liệu chứa các term, với toán tử OR (hợp) thì lấy hợp của các posting lists - tài liệu chứa ít nhất 1 term. Với toán tử NOT (phần bù) thì loại bỏ các tài liệu chứa bất kỳ từ nào.
+
+Ví dụ: 
+
+Với truy vấn: "quy định and thuế" sẽ chia ra được phần đầu là "quy\_định" và phần sau là "thuế" với toán tử là AND thì kết quả là hợp của 2 tập: docs("quy\_định") và docs("thuế")
+
+
+Ưu điểm dễ thấy của mô hình là nhanh và cho ra kết quả tìm kiếm theo kiểu tìm kiếm chính xác (exact match). Tuy nhiên, mô hình có nhược điểm là không có xếp hạng, kết quả có thể rất nhiều hoặc rất ít, nhạy cảm với cách viết truy vấn.
+
+\subsection{Mô hình không gian vector}
+Mô hình không gian vector sử dụng phương pháp TF-IDF để chấm điểm và đánh giá độ liên quan của tài liệu và truy vấn. Mô hình biểu diễn tài liệu và truy vấn thành vector trong không gian nhiều chiếu với mỗi chiều là một từ và đo độ tương đồng sử dụng độ tương đồng cosine. 
+Thuật toán được mô tả bằng mã giả như dưới đây: 
+\begin{enumerate}
+  \item $candidates \gets \varnothing$
+  \item Với mỗi $term \in query\_terms$:
+    \begin{itemize}
+      \item $candidates \gets candidates \cup \text{get\_docs\_contain\_term}(term)$
+    \end{itemize}
+  \item $query\_vector \gets \text{compute\_tfidf}(query\_terms)$
+  \item $query\_norm \gets \sqrt{\sum_{t \in query\_terms} query\_vector[t]^2}$
+  \item Với mỗi $doc\_id \in candidates$:
+    \begin{itemize}
+      \item \[
+        \begin{split}
+          \text{dot\_product} &\gets \sum_{t \in query\_terms \cap \text{doc\_terms}(doc\_id)} \\
+          &\quad query\_vector[t]\times doc\_vector(doc\_id)[t]
+        \end{split}
+        \]
+      \item $doc\_norm \gets \sqrt{\sum_{(t,w)\in doc\_vector(doc\_id)} w^2}$
+      \item $similarity \gets \dfrac{dot\_product}{query\_norm \times doc\_norm}$
+      \item thêm $(doc\_id, similarity)$ vào $scores$
+    \end{itemize}
+
+  \item Sắp xếp $scores$ theo thứ tự giảm dần
+  \item Trả về $top\_n$
+\end{enumerate}
+
+
+Mô hình truy xuất có ưu điểm có xếp hạng kết quả, đơn giản và hiệu quả với tập văn bản vừa phải. Tuy nhiên nhược điểm của mô hình này là giả định độc lập giữa các từ, không xử lý tốt từ đồng âm, từ đồng nghĩa cũng như không xét đến thứ tự của các từ trong câu. Ngoài ra chi phí tính toán khá tốn kém với tập văn bản lớn.
+
+
+
+\subsection{Mô hình Okapi BM25}
+Mô hình sử dụng công thức BM25 để đánh giá và xếp hạng tài liệu liên quan với truy vấn. Thuật toán được mô tả dưới dạng mã giả như sau:
+\begin{algorithm}
+\caption{Tìm kiếm BM25}
+\textbf{Input:} \texttt{query\_terms}: danh sách từ truy vấn, \texttt{top\_n}: số kết quả trả về\\
+\textbf{Output:} danh sách các cặp $(doc\_id, score)$
+
+\begin{enumerate}
+  \item $candidates \gets \varnothing$
+  \item Với mỗi $term$ trong \texttt{query\_terms}:
+    \begin{itemize}
+      \item $candidates \gets candidates \cup \texttt{get\_docs\_contain\_term}(term)$
+    \end{itemize}
+  \item Với mỗi $doc\_id$ trong $candidates$:
+    \begin{itemize}
+      \item $score \gets 0$
+      \item Với mỗi $term$ trong \texttt{query\_terms}:
+        \begin{itemize}
+          \item $score \gets score + \texttt{compute\_bm25\_score}(term, doc\_id)$
+        \end{itemize}
+      \item Thêm $(doc\_id, score)$ vào $scores$
+    \end{itemize}
+  \item Sắp xếp $scores$ theo thứ tự giảm dần và trả về $top\_n$
+\end{enumerate}
+\end{algorithm}
+
+Đặc điểm của mô hình là hiệu quả cao với truy vấn văn bản, xử lý tốt việc chuẩn hóa độ dài và độ bão hòa TF. Tuy nhiên nhược điểm của mô hình này vẫn là khả năng nắm bắt ngữ nghĩa và ngữ cảnh, thứ tự từ.
+
+
+\section{Kết quả và đánh giá}
+Tiến hành đánh giá kết quả trên tập có 2000 truy vấn được lấy từ 2000 truy vấn đầu tiên khi kết hợp tập dữ liệu huấn luyện và tập kiểm thử. 
+
+\subsection{Các chỉ số đánh giá được sử dụng}
+Đề tài sử dụng một số chỉ số đánh giá sau:
+\begin{enumerate}
+  \item Precision@K
+  \item Recall@K
+  \item F1@K
+  \item Reciprocal Rank (RR)
+  \item MRR
+  \item Average Precision (AP)
+  \item MAP
+\end{enumerate}
+
+Các giá trị K đánh giá là 1, 2, 3, 5, 10. Pipeline để đánh giá các mô hình được mô tả dưới dạng mã giả như sau:
+\begin{enumerate}
+  \item \textbf{Thuật toán: Pipeline đánh giá}
+  \item \textbf{Input:} \texttt{search\_engine}, \texttt{ground\_truth}: \texttt{Dict[qid, List[cid]]}, \texttt{queries}: \texttt{Dict[qid, question]}
+  \item Với mỗi \texttt{method} trong \{\texttt{Boolean}, \texttt{VSM}, \texttt{BM25}, \texttt{ES\_Normal}, \texttt{ES\_Processed}\}:
+    \begin{enumerate}
+      \item Với mỗi $(qid, question)$ trong \texttt{queries}:
+        \begin{enumerate}
+          \item $results \gets search\_engine.search(question, method, top\_n=10)$
+          \item $retrieved\_ids \gets [doc\_id \text{ cho } (doc\_id, _) \text{ trong } results]$
+          \item $true\_ids \gets ground\_truth[qid]$
+          \item Với mỗi $K$ trong \{1,2,3,5,10\}:
+            \begin{itemize}
+              \item $precision@K \gets calculate\_precision\_at\_k(retrieved\_ids, true\_ids, K)$
+              \item $recall@K \gets calculate\_recall\_at\_k(retrieved\_ids, true\_ids, K)$
+              \item $f1@K \gets calculate\_f1\_at\_k(retrieved\_ids, true\_ids, K)$
+            \end{itemize}
+          \item $rr \gets reciprocal\_rank(retrieved\_ids, true\_ids)$
+          \item $ap \gets calculate\_average\_precision(retrieved\_ids, true\_ids)$
+        \end{enumerate}
+    \end{enumerate}
+  \item Tổng hợp: trung bình của tất cả các chỉ số trên tất cả truy vấn
+\end{enumerate}
+
+
+
+\subsection{Kết quả đánh giá}
+\begin{table}[ht]
+\centering
+\begin{tabular}{l c c c c c c c}
+\hline
+Phương pháp & P@1 & P@5 & P@10 & R@10 & F1@10 & MRR & MAP \\
+\hline
+\textbf{ES (Đã xử lý)} & \textbf{0.4132} & \textbf{0.1349} & \textbf{0.0771} & \textbf{0.7708} & \textbf{0.1401} & \textbf{0.5284} & \textbf{0.5284} \\
+\textbf{BM25} & 0.4120 & 0.1358 & 0.0770 & 0.7695 & 0.1399 & 0.5269 & 0.5269 \\
+ES (Bình thường) & 0.4012 & 0.1339 & 0.0737 & 0.7372 & 0.1340 & 0.5136 & 0.5136 \\
+VSM & 0.2195 & 0.0963 & 0.0627 & 0.6270 & 0.1140 & 0.3353 & 0.3353 \\
+Boolean & 0.1305 & 0.0541 & 0.0306 & 0.3060 & 0.0556 & 0.1900 & 0.1900 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+Kết quả chi tiết của từng mô hình như trên bảng:
+% BM25
+\begin{table}[H]
+\centering
+\begin{tabular}{c c c c}
+\hline
+K & Precision@K & Recall@K & F1@K \\
+\hline
+1  & 0.4120 & 0.4120 & 0.4120 \\
+2  & 0.2685 & 0.5370 & 0.3580 \\
+3  & 0.2033 & 0.6100 & 0.3050 \\
+5  & 0.1358 & 0.6790 & 0.2263 \\
+10 & 0.0769 & 0.7695 & 0.1399 \\
+\hline
+\end{tabular}
+\caption{Kết quả đánh giá mô hình BM25}
+\end{table}
+
+
+% Boolean
+\begin{table}[H]
+\centering
+\begin{tabular}{c c c c}
+\hline
+K & Precision@K & Recall@K & F1@K \\
+\hline
+1  & 0.1305 & 0.1305 & 0.1305 \\
+2  & 0.0995 & 0.1990 & 0.1327 \\
+3  & 0.0778 & 0.2335 & 0.1167 \\
+5  & 0.0541 & 0.2705 & 0.0902 \\
+10 & 0.0306 & 0.3060 & 0.0556 \\
+\hline
+\end{tabular}
+\caption{Kết quả đánh giá mô hình Boolean}
+\end{table}
+
+
+% VSM
+\begin{table}[H]
+\centering
+\begin{tabular}{c c c c}
+\hline
+K & Precision@K & Recall@K & F1@K \\
+\hline
+1  & 0.2195 & 0.2195 & 0.2195 \\
+2  & 0.1633 & 0.3265 & 0.2177 \\
+3  & 0.1323 & 0.3970 & 0.1985 \\
+5  & 0.0963 & 0.4815 & 0.1605 \\
+10 & 0.0627 & 0.6270 & 0.1140 \\
+\hline
+\end{tabular}
+\caption{Kết quả đánh giá mô hình VSM}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{rccc}
+\hline
+K & Precision@K & Recall@K & F1@K \\
+\hline
+1  & 0.4132 & 0.4132 & 0.4132 \\
+2  & 0.2716 & 0.5432 & 0.3621 \\
+3  & 0.2043 & 0.6128 & 0.3064 \\
+5  & 0.1349 & 0.6744 & 0.2248 \\
+10 & 0.0771 & 0.7708 & 0.1401 \\
+\hline
+\end{tabular}
+\caption{Kết quả đánh giá ES với chỉ mục đã được xử lý}
+\end{table}
+
+\begin{table}[H]
+\centering
+
+\begin{tabular}{rccc}
+\hline
+K & Precision@K & Recall@K & F1@K \\
+\hline
+1  & 0.4012 & 0.4012 & 0.4012 \\
+2  & 0.2644 & 0.5288 & 0.3525 \\
+3  & 0.1988 & 0.5964 & 0.2982 \\
+5  & 0.1339 & 0.6696 & 0.2232 \\
+10 & 0.0737 & 0.7372 & 0.1340 \\
+\hline
+\end{tabular}
+\caption{Kết quả đánh giá ES với chỉ mục bình thường}
+\end{table}
+
+
+\subsection{Nhận xét kết quả}
+
+\subsubsection{ So sánh 2 mô hình có chỉ số tốt nhất - BM25 và ES với chỉ mục đã được xử lý}
+Dễ thấy 2 phương pháp có hiệu suất gần như tương đương (MRR chênh lệch 0.0015), ES nhỉnh hơn 1 chút do thuật toán BM25 cài đặt trên ES đã được tối ưu. Cả hai đều đạt xấp xỉ 77\% Recall@10, nghĩa là trong top 10 kết quả có chứa khoảng 77\% tài liệu liên quan
+
+\subsubsection{ So sánh giữa 2 cách đánh chỉ mục của ES}
+Dễ thấy ES với chỉ mục đã được xử lý tách từ và nối lại bởi dấu cách có kết quả tốt hơn. Điều này chứng tỏ tiền xử lý văn bản giúp cải thiện hiệu suất tìm kiếm và khi truy vấn được tách từ  (tokenize) trước thì ES sẽ tìm chính xác hơn
+
+\subsubsection{BM25 và VSM sử dụng TF-IDF}
+Kết quả cho thấy BM25 vượt trội hơn VSM do những đặc tính tốt hơn đã được trình bày ở phần lý thuyết - độ bão hòa TF và tham số điều khiển độ chuẩn hóa độ dài tài liệu, giúp công bằng giữa văn bản dài và ngắn. 
+
+
+\subsubsection{ Mô hình truy vấn boolean}
+Mô hình có hiệu suất thấp nhất - không có xếp hạng do đó không có thông tin về mức độ liên quan và chỉ phù hợp khi cần tìm chính xác. 
+
+
+\subsubsection{ Nhận xét về xu hướng khi k thay đổi}
+Dễ thấy Precision@K giảm khi K tăng và Recall@K tăng khi K tăng vì khi K tăng thì tỷ lệ bỏ sót tài liệu liên quan sẽ ít đi nhưng sẽ tăng rủi ro những tài liệu liên quan trả về sẽ nhiều trường hợp bị dương tính giả
+
+\section{Giao diện người dùng (UI)}
+Đề tài xây dựng giao diện người dùng để chạy thử nghiệm dưa trên thư viện streamlit. Với giao diện có phần thanh sidebar cho phép người dùng chọn 1 trong 5 phương pháp để tiến hành truy xuất thông tin:
+\begin{itemize}
+  \item Boolean
+  \item Mô hình không gian vector (VSM)
+  \item BM25 (mặc định)
+  \item Elasticsearch (Thông thường)
+  \item Elasticsearch (Đã xử lý)
+\end{itemize}
+
+Và một ô để chọn top N kết quả trả về, phần nhập câu truy vấn, nút tìm kiếm và kết quả hiển thị, bao gồm:
+\begin{description}
+  \item[Rank:] Thứ tự (\#1, \#2, \ldots)
+  \item[Document ID:] ID của văn bản trong corpus
+  \item[Score:] Điểm số (hoặc ``N/A (Match)'' cho Boolean)
+  \item[Nội dung:] Văn bản gốc đầy đủ
+\end{description}
+Giao diện chương trình minh họa như trên hình \ref{fig:demo-ui}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Hinhve/demo-ui.png}
+    \caption{ Giao diện chương trình minh họa kết quả}
+    \label{fig:demo-ui}
+\end{figure}
+\end{document}
