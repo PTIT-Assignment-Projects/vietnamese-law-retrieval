@@ -9,51 +9,36 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{multicol}
-\usepackage{multirow}
-\usepackage{array}
-\usepackage{xcolor}
-\usepackage{xcolor}
-\usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{multicol}
 \usepackage{booktabs}
-\usepackage{lipsum}
-\usepackage[sort, round]{natbib}
-\bibliographystyle{plainnat}
-\usepackage{hyperref}
-\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
-\usepackage{listings}
-\usepackage{float}
+\usepackage{xcolor}
 
 \usepackage{HKUSTstyle}
-\renewcommand{\figurename}{Ảnh}
+\usepackage{algorithm2e}
+
+\definecolor{hkustblue}{RGB}{0, 56, 116}
+\definecolor{hkustred}{RGB}{209, 51, 59}
+\definecolor{codegreen}{RGB}{0, 128, 0}
+
+\newcommand{\highlight}[1]{\textbf{\color{hkustblue}#1}}
+\newcommand{\red}[1]{\textbf{\color{hkustred}#1}}
+\newcommand{\green}[1]{\textbf{\color{codegreen}#1}}
+
 \author{Vũ Công Tuấn Dương -- B22DCKH024}
 \title{Tìm kiếm thông tin từ văn bản luật Việt Nam}
 \institute{Khoa CNTT1 -- PTIT}
 \date{\small \today}
 
-\definecolor{hkustblue}{RGB}{0, 56, 116}
-\definecolor{hkustred}{RGB}{209, 51, 59}
-\definecolor{codegreen}{RGB}{0, 128, 0}
-\definecolor{darkblue}{RGB}{0, 0, 139}
-
-% Custom commands
-\newcommand{\highlight}[1]{\textbf{\color{hkustblue}#1}}
-\newcommand{\red}[1]{\textbf{\color{hkustred}#1}}
-\newcommand{\green}[1]{\textbf{\color{codegreen}#1}}
-
 \begin{document}
 
-% --- Title Slide ---
 \begin{frame}
     \titlepage
 \end{frame}
 
-% --- Table of Contents ---
 \begin{frame}{Mục lục}
     \tableofcontents
 \end{frame}
 
+% ========== SECTION 1: GIOI THIEU ==========
 \section{Giới thiệu}
 \begin{frame}{Mục tiêu đề tài}
 \begin{itemize}
@@ -65,22 +50,35 @@
     \end{itemize}
     \item Sử dụng \textbf{Elasticsearch} làm baseline để so sánh
     \item Dữ liệu: Văn bản luật Việt Nam
-    \item Xây dựng giao diện demo
+    \item Xây dựng giao diện demo với Streamlit
 \end{itemize}
 \end{frame}
 
+% ========== SECTION 2: CO SO LY THUYET ==========
 \section{Cơ sở lý thuyết}
-\subsection{Tiền xử lý văn bản}
-\begin{frame}{Tiền xử lý văn bản}
+\subsection{Elasticsearch}
+\begin{frame}{Elasticsearch - Tổng quan}
 \begin{itemize}
-    \item \textbf{Tách từ (Tokenization):} Chia văn bản thành các token có ý nghĩa
-    \begin{itemize}
-        \item Tiếng Việt: khó khăn với từ ghép, từ viết tắt, dấu câu dính liền
-        \item Sử dụng thư viện \texttt{underthesea}
-    \end{itemize}
-    \item \textbf{Làm sạch:} Loại bỏ HTML tags, URL, ký tự đặc biệt, emojis
-    \item \textbf{Loại bỏ từ dừng:} Các từ phổ biến nhưng ít ý nghĩa ("là", "và", "của")
+    \item Công cụ tìm kiếm phân tán, mã nguồn mở \cite{elasticsearch}
+    \item Dựa trên Apache Lucene
+    \item CSDL NoSQL, lưu trữ tài liệu dạng JSON
+    \item Sử dụng BM25 làm thước đo mặc định \cite{BM25}
 \end{itemize}
+\end{frame}
+
+\begin{frame}{Tiền xử lý - Ví dụ}
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\textbf{Văn bản gốc:}\\
+\textit{Người phạm tội sẽ bị truy cứu trách nhiệm hình sự}
+\end{column}
+\begin{column}{0.5\textwidth}
+\textbf{Sau khi xử lý:}\\
+\textit{Người\_phạm\_tội sẽ bị truy\_cứu trách\_nhiệm hình\_sự}
+\end{column}
+\end{columns}
+\vspace{0.5cm}
+\red{Lý do: Tiếng Việt có từ ghép không dấu cách giữa các tiếng}
 \end{frame}
 
 \subsection{Chỉ mục ngược}
@@ -89,15 +87,30 @@
     \item Ánh xạ ngược từ \textbf{từ (term)} đến \textbf{tài liệu} chứa từ đó
     \item Gồm:
     \begin{itemize}
-        \item \textbf{Từ điển:} Tập hợp các từ vựng
+        \item \textbf{Từ điển (Dictionary):} Tập hợp các từ vựng
         \item \textbf{Postings list:} Danh sách các tài liệu chứa từ đó
     \end{itemize}
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Chỉ mục ngược - Ví dụ}
+\begin{table}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Từ} & \textbf{Postings} \\ \hline
+thuế & Doc10, Doc25, Doc58, Doc100 \\ \hline
+luật & Doc3, Doc7, Doc12, Doc45, Doc89 \\ \hline
+phạm & Doc1, Doc22, Doc33, Doc55 \\ \hline
+trách\_nhiệm & Doc15, Doc30, Doc42 \\ \hline
+\end{tabular}
+\end{table}
+\red{Tra cứu nhanh: Thay vì duyệt 222,981 tài liệu, chỉ cần tra index}
+\end{frame}
+
 \subsection{TF-IDF}
 \begin{frame}{TF-IDF}
-Đánh giá tầm quan trọng của từ dựa trên:
+Đánh giá tầm quan trọng của từ dựa trên \cite{manning2008introduction}:
 \begin{itemize}
     \item \textbf{TF (Term Frequency):} Tần suất xuất hiện của từ trong văn bản
     \item \textbf{IDF (Inverse Document Frequency):} Mức độ hiếm của từ trong tập tài liệu
@@ -153,6 +166,20 @@ RR_i = \frac{1}{rank_i}, \quad MRR = \frac{1}{N} \sum_{i=1}^{N} \frac{1}{rank_i}
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Mean Average Precision (MAP)}
+Tính đến cả thứ hạng và độ chính xác:
+\[
+AP = \sum_{k=1}^{n} P(k) \cdot \Delta r(k)
+\]
+\[
+MAP = \frac{1}{N} \sum_{i=1}^{N} AP_i
+\]
+\begin{itemize}
+    \item Chỉ số phổ biến nhất trong đánh giá IR
+    \item Đánh giá toàn diện hơn MRR
+\end{itemize}
+\end{frame}
+
 \subsection{Elasticsearch}
 \begin{frame}{Elasticsearch - Tổng quan}
 \begin{itemize}
@@ -186,6 +213,7 @@ RR_i = \frac{1}{rank_i}, \quad MRR = \frac{1}{N} \sum_{i=1}^{N} \frac{1}{rank_i}
 \end{itemize}
 \end{frame}
 
+% ========== SECTION 3: THUC NGHIEM ==========
 \section{Thực nghiệm và đánh giá kết quả}
 \begin{frame}{Tập dữ liệu}
 \begin{itemize}
@@ -214,7 +242,7 @@ Cột & Kiểu & Mô tả \\ \hline
 
 \begin{frame}{Tiền xử lý và xây dựng chỉ mục}
 \begin{itemize}
-    \item Sử dụng \texttt{underthesea} để chuẩn hóa và tách từ
+    \item Sử dụng \texttt{underthesea} \cite{underthesea} để chuẩn hóa và tách từ
     \item Token có 2 từ trở lên được nối bằng dấu "\_"
     \item Loại bỏ từ dừng bằng danh sách từ Github \cite{vietnamese_stopwords}
 \end{itemize} 
@@ -228,139 +256,17 @@ Cột & Kiểu & Mô tả \\ \hline
 \textbf{Mapping:} \texttt{content (text)} cho full-text, \texttt{content.keyword} cho exact match
 \end{frame}
 
-\begin{frame}{Phương pháp truy xuất}
-\begin{itemize}
-    \item Boolean
-    \item VSM
-    \item BM25
-    \item Elasticsearch (Thường)
-    \item Elasticsearch (Đã xử lý)
-\end{itemize}
+\begin{frame}{Các phương pháp truy xuất}
+5 phương pháp được cài đặt và đánh giá:
+\begin{enumerate}
+    \item \textbf{Boolean}: Truy vấn với toán tử AND, OR, NOT
+    \item \textbf{VSM}: Mô hình không gian vector với TF-IDF
+    \item \textbf{BM25}: Mô hình xác suất với TF saturation
+    \item \textbf{Elasticsearch (Thường)}: Analyzer mặc định
+    \item \textbf{Elasticsearch (Đã xử lý)}: Tách từ trước bằng underthesea
+\end{enumerate}
 \end{frame}
 
-\begin{frame}{Thuật toán BuildInvertedIndex (1/2)}
-\footnotesize
-\begin{algorithm}[H]
-\KwIn{documents: Dict[doc\_id, List[term]]}
-\KwOut{index, doc\_lengths, doc\_terms, term\_docs, term\_doc\_freq, avg\_doc\_length}
-total\_docs $\leftarrow$ len(documents)\;
-total\_length $\leftarrow$ 0\;
-index $\leftarrow$ \{\}; doc\_lengths $\leftarrow$ \{\}\;
-doc\_terms $\leftarrow$ \{\}; term\_docs $\leftarrow$ \{\}\;
-\ForEach{(cid, terms) in documents}{
-  doc\_length $\leftarrow$ len(terms)\;
-  doc\_lengths[cid] $\leftarrow$ doc\_length\;
-  total\_length $\leftarrow$ total\_length + doc\_length\;
-  doc\_terms[cid] $\leftarrow$ Counter(terms)\;
-  \ForEach{(pos, term) in enumerate(terms)}{
-    index[term].append((cid, pos))\;
-    term\_docs[term].add(cid)\;
-  }
-}
-\caption{BuildInvertedIndex (phần 1)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Thuật toán BuildInvertedIndex (2/2)}
-\begin{algorithm}[H]
-\ForEach{term in term\_docs}{
-  term\_doc\_freq[term] $\leftarrow$ |term\_docs[term]|\;
-}
-avg\_doc\_length $\leftarrow$ total\_length / total\_docs\;
-\Return{index, doc\_lengths, doc\_terms, term\_docs, term\_doc\_freq, avg\_doc\_length}\;
-\caption{BuildInvertedIndex (phần 2)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Thuật toán VSM (1/2)}
-\begin{algorithm}[H]
-\KwIn{query\_terms, top\_n}
-\KwOut{danh sách (doc\_id, similarity)}
-candidates $\leftarrow$ \varnothing\;
-\ForEach{term in query\_terms}{
-  candidates $\leftarrow$ candidates $\cup$ get\_docs\_contain\_term(term)\;
-}
-query\_vector $\leftarrow$ compute\_tfidf(query\_terms)\;
-query\_norm $\leftarrow$ \sqrt{\sum_{t} query\_vector[t]^2}\;
-\caption{VSM với TF-IDF (phần 1)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Thuật toán VSM (2/2)}
-\footnotesize
-\begin{algorithm}[H]
-\KwIn{query\_terms, top\_n}
-\KwOut{danh sách (doc\_id, similarity)}
-candidates $\leftarrow$ \varnothing\;
-\ForEach{term in query\_terms}{
-  candidates $\leftarrow$ candidates $\cup$ get\_docs\_contain\_term(term)\;
-}
-\ForEach{doc\_id in candidates}{
-  \texttt{dot} $\leftarrow$ \sum_{t \in query \cap doc} query\_vector[t] \times doc\_vector[t]\;\\
-  \texttt{doc\_norm} $\leftarrow$ \sqrt{\sum_{(t,w) \in doc\_vector} w^2}\;\\
-  \texttt{similarity} $\leftarrow$ \dfrac{dot}{query\_norm \times doc\_norm}\;\\
-  \text{thêm} \((\texttt{doc\_id}, \texttt{similarity})\) \text{vào} \texttt{scores}\;
-}
-Sắp xếp scores giảm dần\;
-Trả về top\_n\;
-\caption{VSM với TF-IDF (phần 2)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Thuật toán BM25 (1/2)}
-\begin{algorithm}[H]
-\KwIn{query\_terms, top\_n}
-\KwOut{danh sách (doc\_id, score)}
-candidates $\leftarrow$ \varnothing\;
-\ForEach{term in query\_terms}{
-  candidates $\leftarrow$ candidates $\cup$ get\_docs\_contain\_term(term)\;
-}
-\caption{Tìm kiếm BM25 (phần 1)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Thuật toán BM25 (2/2)}
-\begin{algorithm}[H]
-\ForEach{doc\_id in candidates}{
-  score $\leftarrow$ 0\;
-  \ForEach{term in query\_terms}{
-    score $\leftarrow$ score + compute\_bm25\_score(term, doc\_id)\;
-  }
-  thêm (doc\_id, score) vào scores\;
-}
-Sắp xếp scores giảm dần, trả về top\_n\;
-\caption{Tìm kiếm BM25 (phần 2)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Pipeline đánh giá (1/2)}
-\begin{algorithm}[H]
-\KwIn{search\_engine, ground\_truth, queries}
-\KwOut{Bảng chỉ số đánh giá}
-\ForEach{method in \{Boolean, VSM, BM25, ES\_Normal, ES\_Processed\}}{
-  \ForEach{(qid, question) in queries}{
-    results $\leftarrow$ search\_engine.search(question, method, top\_n=10)\;
-    retrieved\_ids $\leftarrow$ [doc\_id in results]\;
-    true\_ids $\leftarrow$ ground\_truth[qid]\;
-  }
-}
-\caption{Pipeline đánh giá (phần 1)}
-\end{algorithm}
-\end{frame}
-
-\begin{frame}{Pipeline đánh giá (2/2)}
-\begin{algorithm}[H]
-\DontPrintSemicolon
-\ForEach{K in \{1,2,3,5,10\}}{
-  tính P@K, R@K, F1@K\;
-}
-tính rr, ap\;
-Tổng hợp: trung bình tất cả chỉ số trên tất cả truy vấn\;
-\caption{Pipeline đánh giá (phần 2)}
-\end{algorithm}
-\end{frame}
-
-\section{Kết quả và đánh giá}
 \begin{frame}{Kết quả tổng quan}
 \begin{table}
 \centering
@@ -393,7 +299,6 @@ K & Precision@K & Recall@K & F1@K \\
 10 & 0.0769 & 0.7695 & 0.1399 \\
 \hline
 \end{tabular}
-\caption{Kết quả đánh giá mô hình BM25}
 \end{table}
 \end{frame}
 
@@ -411,7 +316,6 @@ K & Precision@K & Recall@K & F1@K \\
 10 & 0.0771 & 0.7708 & 0.1401 \\
 \hline
 \end{tabular}
-\caption{Kết quả đánh giá ES với chỉ mục đã xử lý}
 \end{table}
 \end{frame}
 
@@ -439,19 +343,22 @@ K & Precision@K & Recall@K & F1@K \\
     \item Đã cài đặt và so sánh thành công 5 phương pháp truy xuất
     \item \textbf{BM25} và \textbf{ES (đã xử lý)} cho kết quả tốt nhất
     \item Tiền xử lý văn bản (tách từ tiếng Việt) quan trọng
-    \item Xây dựng giao diện demo hoàn chỉnh với Streamlit
+    \item Xây dựng giao diện demo hoàn chỉnh với Streamlit \cite{streamlit}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\begin{center}
-    Cảm ơn thầy đã lắng nghe!
-\end{center}
+    \begin{center}
+        Cảm ơn thầy đã lắng nghe!
+    \end{center}
 \end{frame}
 
+\section{Tài liệu tham khảo}
 \begin{frame}[t, allowframebreaks]
-\frametitle{Tài liệu tham khảo}
-\bibliography{sample}
+    \fontsize{9pt}{10pt}\selectfont
+    \textbf{Tài liệu tham khảo}
+    \bibliographystyle{plain}
+    \bibliography{sample}
 \end{frame}
 
 \end{document}
