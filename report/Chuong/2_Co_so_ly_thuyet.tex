@@ -3,218 +3,546 @@
 \begin{document}
 
 \section{Tiền xử lý văn bản}
-Đây là bước quan trọng để loại bỏ nhiễu và chuẩn hóa dữ liệu đầu vào.
-\subsection{Tách từ (tokenization)}
-Tách từ là quá trình chia một chuỗi văn bản thành các đơn vị nhỏ hơn có ý nghĩa, gọi là "token". Token thường là từ, nhưng cũng có thể là số, dấu câu, hoặc các đơn vị có ý nghĩa khác tùy thuộc vào mục đích. Bước này là bước đầu tiên và cơ bản nhất trong hầu hết các tác vụ xử lý ngôn ngữ tự nhiên. Nếu tách từ không chính xác, các bước xử lý sau sẽ bị ảnh hưởng.
-Có một số phương pháp tách từ như:
+Tiền xử lý văn bản (Text Preprocessing) là bước quan trọng và không thể thiếu trong bất kỳ hệ thống xử lý ngôn ngữ tự nhiên và truy xuất thông tin. Mục đích chính của bước này là loại bỏ nhiễu (noise), chuẩn hóa dữ liệu đầu vào, và chuyển đổi văn bản thô thành định dạng phù hợp cho các thuật toán xử lý tiếp theo. Một văn bản thường chứa nhiều yếu tố không cần thiết như ký tự đặc biệt, số, URL, HTML tags, và các từ không mang ý nghĩa ngữ nghĩa. Việc loại bỏ các yếu tố này giúp cải thiện đáng kể chất lượng của các mô hình truy xuất thông tin \cite{manning2008introduction}.
+
+\subsection{Tách từ (Tokenization)}
+Tách từ (Tokenization) là quá trình chia một chuỗi văn bản thành các đơn vị nhỏ hơn có ý nghĩa, gọi là "token". Token thường là từ, nhưng cũng có thể là số, dấu câu, hoặc các đơn vị có ý nghĩa khác tùy thuộc vào mục đích sử dụng. Bước tách từ là bước đầu tiên và cơ bản nhất trong hầu hết các tác vụ xử lý ngôn ngữ tự nhiên. Nếu tách từ không chính xác, các bước xử lý sau sẽ bị ảnh hưởng nghiêm trọng, dẫn đến kết quả không chính xác.
+
+Có nhiều phương pháp tách từ khác nhau, mỗi phương pháp có ưu điểm và nhược điểm riêng:
 
 \begin{itemize}
-    \item Tách theo khoảng trắng: Đơn giản nhất, chia chuỗi theo dấu cách. Đây là cách đơn giản, dễ thực hiện nhưng có nhược điểm khi không xử lý được nhiều trường hợp phức tạp như: dấu câu dính liền từ, từ ghép
-    \item Tách theo dấu câu: Chia chuỗi theo các dấu câu
-    \item Tách dựa trên từ điển: Sử dụng một từ điển các từ đã biết để nhận diện và tách các từ. Phương pháp này đơn giản, dễ cài đặt nhưng vẫn có các nhược điểm như phụ thuộc vào từ điển, độ chính xác không cao, không giải quyết được trường hợp
-    \item Tách dựa trên quy tắc: Áp dụng các quy tắc ngữ pháp hoặc hình thái học để tách từ (ví dụ: tách tiền tố, hậu tố)
-    \item Tách dựa trên học máy: Sử dụng các mô hình học máy để dự đoán ranh giới từ.
+    \item \textbf{Tách theo khoảng trắng (Whitespace Tokenization):} Phương pháp đơn giản nhất, chia chuỗi theo dấu cách. Đây là cách đơn giản, dễ thực hiện nhưng có nhược điểm khi không xử lý được nhiều trường hợp phức tạp như: dấu câu dính liền từ ("xin chao,"), từ ghép ("cong nghe thong tin"), và các trường hợp đặc biệt khác.
+    
+    \item \textbf{Tách theo dấu câu (Punctuation-based Tokenization):} Chia chuỗi theo các dấu câu như dấu chấm, phẩy, chấm hỏi, v.v. Phương pháp này tốt hơn tách theo khoảng trắng nhưng vẫn gặp vấn đề với các dấu câu nằm trong từ hoặc viết tắt.
+    
+    \item \textbf{Tách dựa trên từ điển (Dictionary-based Tokenization):} Sử dụng một từ điển các từ đã biết để nhận diện và tách các từ. Phương pháp này đơn giản, dễ cài đặt nhưng vẫn có các nhược điểm như phụ thuộc vào từ điển, độ chính xác không cao đối với từ mới, và không giải quyết được trường hợp từ không có trong từ điển.
+    
+    \item \textbf{Tách dựa trên quy tắc (Rule-based Tokenization):} Áp dụng các quy tắc ngữ pháp hoặc hình thái học để tách từ (ví dụ: tách tiền tố, hậu tố trong tiếng Anh như "un-", "-ing"). Phương pháp này đòi hỏi hiểu biết sâu về ngữ pháp của ngôn ngữ.
+    
+    \item \textbf{Tách dựa trên học máy (Machine Learning Tokenization):} Sử dụng các mô hình học máy (như CRF, HMM, Neural Network) để dự đoán ranh giới từ. Đây là phương pháp tiên tiến nhất, cho độ chính xác cao nhất nhưng đòi hỏi dữ liệu huấn luyện và chi phí tính toán lớn.
 \end{itemize}
-Với từ tiếng Việt, có một số khó khăn khi tách từ như: từ ghép, từ viết tắt, dấu câu dính liền với từ, số đi kèm với đơn vị đo( ví dụ: 10kg, 50km/h). Trong bài toán này nhóm em sử dụng công cụ hỗ trợ trong Python là thư viện underthesea
-\subsection{Làm sạch văn bản}
-Làm sạch văn bản để loại bỏ các yếu tố không mong muốn hoặc không mang ý nghĩa ngữ nghĩa từ văn bản. Một số loại nhiễu thường gặp như:
+
+Đối với tiếng Việt, có một số khó khăn đặc thù khi tách từ do đặc điểm của ngôn ngữ:
+
 \begin{itemize}
-    \item HTML tags, XML tags , ví dụ: <p>, <xml>
-    \item đường dẫn URL
-    \item Ký tự đặc biệt, biểu tượng cảm xúc (emojis)
-    \item Số (trong một số trường hợp cụ thể)
-    \item Khoảng trắng thừa
-    \item Ký tự không phải ASCII (nếu cần thiết)
+    \item \textbf{Từ ghép (Compound words):} Tiếng Việt có nhiều từ ghép như "công nghệ thông tin", "bộ máy tính toán". Việc xác định ranh giới từ trong từ ghép rất khó vì không có khoảng trắng phân cách.
+    
+    \item \textbf{Từ viết tắt (Abbreviations):} Nhiều từ viết tắt trong văn bản pháp luật như "TV", "BH", "TP.HCM" gây khó khăn cho việc tách từ.
+    
+    \item \textbf{Dấu câu dính liền với từ:} Trong tiếng Việt, dấu câu thường được đặt dính liền với từ đứng trước (ví dụ: "xin chào,") gây khó khăn cho việc xử lý.
+    
+    \item \textbf{Số đi kèm đơn vị đo:} Các trường hợp như "10kg", "50km/h", "100.000 đồng" cần được xử lý đặc biệt để giữ nguyên ý nghĩa.
 \end{itemize}
-Tuỳ trong một số bài toán cụ thể thì có thể linh hoạt xác định và loại bỏ nhiễu
-\subsection{Loại bỏ ký tự đặc biệt và từ dừng}
-Từ dừng là các từ rất phổ biến trong ngôn ngữ nhưng thường không mang nhiều ý nghĩa phân biệt hoặc ngữ nghĩa quan trọng cho các tác vụ xử lý ngôn ngữ tự nhiên, ví dụ: “là”, “và”, “của”, … Việc loại bỏ các từ dừng giúp giảm kích thước dữ liệu, thời gian xử lý và cải thiện hiệu suất của mô hình. Ở đây nhóm sử dụng một từ điển từ dừng tự định nghĩa để lọc các từ dừng
-Về các ký tự đặc biệt, việc loại bỏ những ký tự này cũng để giảm nhiễu. Tuy nhiên cần cân nhắc ngữ cảnh. Ví dụ: trong phân tích cảm xúc, dấu chấm than ! có thể mang ý nghĩa tích cực mạnh
 
-\subsection{Chỉnh sửa từ}
-Trong văn bản có thể có một số lỗi chính tả, lỗi gõ phím hoặc các biến thể không chuẩn của từ. Do đó cần phải sửa để đưa về dạng chuẩn để đảm bảo tính nhất quán của dữ liệu. Lỗi chính tả có thể tạo ra nhiều "từ" khác nhau cho cùng một khái niệm, làm giảm hiệu quả của các mô hình. Có một số phương pháp để chỉnh sửa từ như: 
+Trong bài toán này, nhóm em sử dụng công cụ hỗ trợ trong Python là thư viện underthesea \cite{underthesea} - một bộ công cụ xử lý ngôn ngữ tự nhiên dành riêng cho tiếng Việt. Thư viện này cung cấp các chức năng tách từ, gán nhãn từ loại, và chuẩn hóa văn bản với độ chính xác cao cho tiếng Việt.
+
+\subsection{Chuẩn hóa văn bản (Text Normalization)}
+Chuẩn hóa văn bản là quá trình chuyển đổi văn bản về một dạng thống nhất để đảm bảo tính nhất quán. Mục đích là loại bỏ các biến thể của cùng một từ để các thuật toán có thể nhận ra chúng như cùng một khái niệm. Các bước chuẩn hóa thường bao gồm:
+
 \begin{itemize}
-    \item Dựa trên từ điển: So sánh từ với một từ điển chuẩn, tìm từ gần nhất (ví dụ: khoảng cách Levenshtein).
-    \item Dựa trên mô hình ngôn ngữ: Sử dụng các mô hình thống kê hoặc học sâu để dự đoán từ đúng dựa trên ngữ cảnh.
-    \item Áp dụng các quy tắc để sửa các lỗi phổ biến.
+    \item \textbf{Chuyển đổi chữ hoa/chữ thường:} Chuyển tất cả các ký tự về cùng một dạng (thường là chữ thường) để đảm bảo "ViệtNam" và "việtnam" được nhận ra như cùng một từ. Tuy nhiên, trong một số trường hợp riêng danh cần được giữ nguyên (ví dụ: tên riêng).
+    
+    \item \textbf{Xử lý dấu gạch nối:} Quyết định có loại bỏ dấu gạch nối hay giữ lại. Ví dụ: "truy-xuất" có thể được chuyển thành "truy xuất".
+    
+    \item \textbf{Xử lý Unicode:} Chuẩn hóa các ký tự Unicode về cùng một dạng (ví dụ: chuyển "à" từ mã tổ hợp sang mã dựng sẵn).
+    
+    \item \textbf{Xử lý từ viết tắt:} Mở rộng các từ viết tắt về dạng đầy đủ nếu cần thiết.
 \end{itemize}
-Trong bài này sử dụng thư viện underthesea hỗ trợ chỉnh sửa từ. 
 
-\section{Chỉ mục}
-Sau khi tiến hành tiền xử lý để tách từ thì sẽ đến bước xây dựng chỉ mục từ từ điển chứa các từ đã được tách. 
-\subsection{Chỉ mục ngược}
-Chỉ mục ngược là chỉ mục mà ánh xạ ngược từ từ (term) đến tài liệu mà từ đó xuất hiện. Ý tưởng chính của chỉ mục ngược là giữ một tập từ điển các từ (thường được gọi là tập từ vựng).Với mỗi từ, xây dựng một danh sách chứa các danh sách các tài liệu từ đó xuất hiện. Mỗi phần tử trong danh sách còn được gọi là posting. Danh sách chứa các posting gọi là postings list \cite{manning2008introduction} và tập hợp các postings list được gọi là postings. Ví dụ về chỉ mục ngược và các thành phần được mô tả như trên hình \ref{fig:inverted-chỉ mục1}.
+Thư viện underthesea cung cấp hàm \texttt{text\_normalize()} để thực hiện việc chuẩn hóa văn bản tiếng Việt một cách tự động.
 
+\subsection{Làm sạch văn bản (Text Cleaning)}
+Làm sạch văn bản là bước loại bỏ các yếu tố không mong muốn hoặc không mang ý nghĩa ngữ nghĩa từ văn bản. Mục đích là giảm nhiễu và tập trung vào nội dung chính. Một số loại nhiễu thường gặp trong văn bản:
+
+\begin{itemize}
+    \item \textbf{HTML tags và XML tags:} Các thẻ HTML như \texttt{<p>}, \texttt{<div>}, \texttt{<xml>} thường xuất hiện trong văn bản được crawl từ web. Các thẻ này cần được loại bỏ hoàn toàn.
+    
+    \item \textbf{Đường dẫn URL:} Các liên kết web như "https://example.com" không mang ý nghĩa ngữ nghĩa trong hầu hết các bài toán NLP.
+    
+    \item \textbf{Ký tự đặc biệt và biểu tượng cảm xúc (emojis):} Các ký tự đặc biệt như \#, @, *, và các biểu tượng cảm xúc không mang ý nghĩa cho việc truy xuất thông tin pháp luật.
+    
+    \item \textbf{Số:} Trong một số trường hợp cụ thể (như phân tích cảm xúc), số có thể không cần thiết. Tuy nhiên, trong văn bản pháp luật, số thường mang ý nghĩa quan trọng (điều khoản, mức phạt, v.v.) nên cần cân nhắc kỹ.
+    
+    \item \textbf{Khoảng trắng thừa:} Nhiều khoảng trắng thừa giữa các từ gây ảnh hưởng đến kết quả tách từ.
+    
+    \item \textbf{Ký tự không phải ASCII:} Trong tiếng Việt, cần giữ lại các ký tự có dấu (à, ả, ạ, ...). Tuy nhiên, các ký tự đặc biệt khác cần được loại bỏ.
+\end{itemize}
+
+Tùy vào bài toán cụ thể mà có thể linh hoạt xác định và loại bỏ các yếu tố nhiễu phù hợp.
+
+\subsection{Loại bỏ từ dừng (Stopword Removal)}
+Từ dừng (stopword) là các từ rất phổ biến trong ngôn ngữ nhưng thường không mang nhiều ý nghĩa phân biệt hoặc ngữ nghĩa quan trọng cho các tác vụ xử lý ngôn ngữ tự nhiên. Trong tiếng Việt, các từ dừng phổ biến bao gồm: "là", "và", "của", "trong", "với", "được", "có", "các", ... Việc loại bỏ các từ dừng mang lại nhiều lợi ích:
+
+\begin{itemize}
+    \item \textbf{Giảm kích thước dữ liệu:} Loại bỏ từ dừng giúp giảm đáng kể kích thước của tập dữ liệu, đặc biệt quan trọng khi làm việc với tập dữ liệu lớn.
+    
+    \item \textbf{Giảm thời gian xử lý:} Thời gian xây dựng chỉ mục và truy vấn được giảm đáng kể khi không phải xử lý các từ dừng.
+    
+    \item \textbf{Cải thiện hiệu suất mô hình:} Nhiều nghiên cứu cho thấy việc loại bỏ từ dừng giúp cải thiện chất lượng của các mô hình truy xuất thông tin.
+    
+    \item \textbf{Giảm nhiễu:} Các từ dừng xuất hiện rất thường xuyên trong hầu hết các tài liệu, gây nhiễu cho việc tính điểm liên quan.
+\end{itemize}
+
+Trong đề tài này, nhóm sử dụng một từ điển từ dừng tiếng Việt tự định nghĩa được thu thập từ repository GitHub của tác giả \cite{vietnamese_stopwords} để lọc các từ dừng. Danh sách này chứa khoảng 2000 từ dừng phổ biến trong tiếng Việt.
+
+Về các ký tự đặc biệt, việc loại bỏ những ký tự này cũng để giảm nhiễu. Tuy nhiên, cần cân nhắc ngữ cảnh. Ví dụ: trong phân tích cảm xúc, dấu chấm than "!" có thể mang ý nghĩa tích cực mạnh. Trong văn bản pháp luật, dấu chấm phẩy ";" thường ngăn cách các điều khoản nên mang ý nghĩa quan trọng.
+
+\subsection{Chỉnh sửa từ (Text Correction)}
+Trong văn bản có thể có một số lỗi chính tả, lỗi gõ phím hoặc các biến thể không chuẩn của từ. Do đó cần phải sửa để đưa về dạng chuẩn để đảm bảo tính nhất quán của dữ liệu. Lỗi chính tả có thể tạo ra nhiều "từ" khác nhau cho cùng một khái niệm, làm giảm hiệu quả của các mô hình truy xuất. Có một số phương pháp để chỉnh sửa từ:
+
+\begin{itemize}
+    \item \textbf{Dựa trên từ điển (Dictionary-based Correction):} So sánh từ với một từ điển chuẩn, tìm từ gần nhất bằng cách sử dụng các thuật toán khoảng cách Levenshtein, Jaro-Winkler, v.v. Phương pháp này đơn giản nhưng phụ thuộc vào từ điển.
+    
+    \item \textbf{Dựa trên mô hình ngôn ngữ (Language Model Correction):} Sử dụng các mô hình thống kê (n-gram) hoặc học sâu (Neural Network) để dự đoán từ đúng dựa trên ngữ cảnh xung quanh. Phương pháp này cho độ chính xác cao hơn nhưng đòi hỏi dữ liệu huấn luyện.
+    
+    \item \textbf{Áp dụng quy tắc (Rule-based Correction):} Áp dụng các quy tắc để sửa các lỗi phổ biến. Ví dụ: sửa "nghiep" thành "nghiệp" dựa trên quy tắc ghép dấu.
+\end{itemize}
+
+Trong bài này, nhóm sử dụng thư viện underthesea \cite{underthesea} để hỗ trợ chuẩn hóa và chỉnh sửa từ tiếng Việt. Thư viện này sử dụng các quy tắc ngữ pháp tiếng Việt để chuyển đổi các từ về dạng chuẩn.
+
+\section{Chỉ mục (Indexing)}
+Sau khi tiến hành tiền xử lý để tách từ, bước tiếp theo là xây dựng chỉ mục từ từ điển chứa các từ đã được tách. Chỉ mục (Index) là cấu trúc dữ liệu cho phép truy xuất nhanh chóng các tài liệu chứa một từ hoặc cụm từ cụ thể. Trong hệ thống truy xuất thông tin, chỉ mục đóng vai trò then chốt quyết định tốc độ và hiệu quả của việc tìm kiếm.
+
+\subsection{Chỉ mục ngược (Inverted Index)}
+Chỉ mục ngược (Inverted Index) là cấu trúc chỉ mục phổ biến nhất trong các hệ thống truy xuất thông tin. Khác với chỉ mục thuận (Forward Index) lưu trữ tài liệu theo thứ tự, chỉ mục ngược ánh xạ ngược từ từ (term) đến tài liệu mà từ đó xuất hiện \cite{manning2008introduction}. Ý tưởng chính của chỉ mục ngược là giữ một tập từ điển các từ (thường được gọi là tập từ vựng - vocabulary). Với mỗi từ, xây dựng một danh sách chứa các tài liệu từ đó xuất hiện. Mỗi phần tử trong danh sách còn được gọi là posting. Danh sách chứa các posting gọi là postings list và tập hợp các postings list được gọi là postings.
+
+Cấu trúc của chỉ mục ngược bao gồm hai thành phần chính:
+
+\begin{enumerate}
+    \item \textbf{Từ điển (Dictionary):} Tập hợp tất cả các từ khác nhau xuất hiện trong tập tài liệu. Mỗi từ trong từ điển thường đi kèm với các thống kê như document frequency (số lượng tài liệu chứa từ đó).
+    
+    \item \textbf{Postings:} Danh sách các tài liệu chứa từ đó, thường được sắp xếp theo ID tài liệu và có thể bao gồm thông tin bổ sung như tần suất xuất hiện, vị trí trong tài liệu.
+\end{enumerate}
+
+Hình \ref{fig:inverted-chỉ mục1} minh họa một ví dụ về chỉ mục ngược và các thành phần của nó.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Hinhve/inverted-index1.jpg}
-    \caption{Một ví dụ về chỉ mục ngược và các thành phần của nó}
+    \caption{Ví dụ về chỉ mục ngược và các thành phần của nó}
     \label{fig:inverted-chỉ mục1}
 \end{figure}
 
+Ưu điểm của chỉ mục ngược:
+\begin{itemize}
+    \item \textbf{Tìm kiếm nhanh:} Truy vấn một từ có thể được thực hiện trong O(1) hoặc O(log M) với M là kích thước từ điển, thay vì quét toàn bộ tài liệu O(N).
+    
+    \item \textbf{Xử lý truy vấn Boolean dễ dàng:} Các phép toán giao (AND), hợp (OR), bù (NOT) có thể được thực hiện trên các postings lists.
+    
+    \item \textbf{Hỗ trợ xếp hạng:} Thông tin tần suất trong postings cho phép tính điểm liên quan.
+    
+    \item \textbf{Mở rộng tốt:} Có thể dễ dàng thêm tài liệu mới mà không cần xây dựng lại toàn bộ chỉ mục.
+\end{itemize}
 
-\subsection{Các bước lập chỉ mục}
+Nhược điểm:
+\begin{itemize}
+    \item \textbf{Tiêu tốn bộ nhớ:} Cần lưu trữ cả từ điển và postings.
+    
+    \item \textbf{Chi phí xây dựng ban đầu:} Xây dựng chỉ mục ngược tốn thời gian.
+    
+    \item \textbf{Cập nhật phức tạp:} Việc cập nhật chỉ mục (thêm/sửa/xóa tài liệu) phức tạp hơn so với chỉ mục thuận.
+\end{itemize}
 
+\subsection{Các bước lập chỉ mục ngược}
+Quá trình xây dựng chỉ mục ngược bao gồm các bước cơ bản sau \cite{manning2008introduction}:
 
 \begin{enumerate}
-    \item Tạo chuỗi các cặp (token đã chỉnh sửa, ID tài liệu) từ văn bản gốc
-    \item Sắp xếp danh sách theo thuật ngữ, sau đó theo ID tài liệu(đây là bước cốt lõi của việc lập chỉ mục)
-    \item Gộp các mục trùng lặp của một từ(thuật ngữ) trong cùng một tài liệu
-    \item Chỉ mục được tách thành từ điển và postings
-    \item Bổ sung thông tin tần suất của tài liệu (phục vụ cho việc xây dựng mô hình không gian vector và BM25 sau này)
+    \item \textbf{Tạo chuỗi các cặp (token, ID tài liệu):} Từ văn bản gốc, sau khi tiền xử lý, tạo ra danh sách các cặp (token đã chỉnh sửa, ID tài liệu).
+    
+    \item \textbf{Sắp xếp theo thuật ngữ và ID tài liệu:} Sắp xếp danh sách theo thuật ngữ, sau đó theo ID tài liệu. Đây là bước cốt lõi của việc lập chỉ mục, quyết định cấu trúc cuối cùng của chỉ mục.
+    
+    \item \textbf{Gộp các mục trùng lặp:} Gộp các mục trùng lặp của một từ (thuật ngữ) trong cùng một tài liệu, tính tổng tần suất.
+    
+    \item \textbf{Tách thành từ điển và postings:} Chỉ mục được tách thành hai phần: từ điển (các từ duy nhất) và postings lists (danh sách tài liệu).
+    
+    \item \textbf{Bổ sung thông tin tần suất:} Lưu trữ thêm thông tin tần suất của từ trong mỗi tài liệu và tổng số tài liệu chứa từ (document frequency) để phục vụ cho việc xây dựng mô hình không gian vector và BM25.
 \end{enumerate}
 
+Thuật toán xây dựng chỉ mục ngược có độ phức tạp $O(N \times L \times log(N \times L))$ với $N$ là số tài liệu và $L$ là độ dài trung bình của tài liệu.
 
+\subsection{Chỉ mục vị trí (Positional Index)}
+Chỉ mục vị trí (Positional Index) được xây dựng như một bản nâng cấp của chỉ mục ngược. Cấu trúc tương tự như chỉ mục ngược, nhưng khác biệt ở chỗ trong danh sách postings, lưu trữ cả vị trí xuất hiện của mỗi thuật ngữ trong tài liệu. Cấu trúc của chỉ mục vị trí:
 
+$$\text{Từ}_k: [(doc_1, [pos_1, pos_2, ..., pos_m]), (doc_2, [pos_1, pos_2, ..., pos_n]), ...]$$
 
-\subsection{Chỉ mục vị trí}
-Chỉ mục vị trí được xây dựng như một bản nâng cấp của chỉ mục ngược do đó cấu trúc tương tự như chỉ mục ngược, khác biệt ở chỗ trong danh sách postings (postings lists), lưu trữ vị trí xuất hiện của mỗi thuật ngữ trong tài liệu. Ví dụ về một chỉ mục vị trí:
+Ví dụ về một chỉ mục vị trí: angels: [doc2 -> [36, 174, 252, 651], doc4 -> [12, 22, 102, 432], doc7 -> [17]]
 
-angels: 2: \{36,174,252,651\}; 4: \{12,22,102,432\}; 7: \{17\};
+Trong đó, "doc2" là ID của tài liệu và danh sách bên trong chứa thứ tự vị trí của từ "angels" xuất hiện trong văn bản.
 
-Trong đó, 2 là ID của tài liệu và danh sách bên trong chứa thứ tự vị trí của từ đó xuất hiện trong văn bản. 
-
-
-\section{Các thang đo chấm điểm mức độ liên quan của tài liệu}
-\subsection{TF-IDF}
-TF-IDF là phương pháp thống kê nhằm đánh giá tầm quan trọng của một từ đối với 1 tài liệu trong 1 tập hợp tài liệu dựa trên hai yếu tố:
+Ứng dụng của chỉ mục vị trí:
 \begin{itemize}
-    \item Term Frequency (TF): Tần suất xuất hiện của từ trong văn bản.
-    \item Inverse Document Frequency (IDF): Mức độ hiếm của từ đó trong toàn bộ tập tài liệu. Từ càng hiếm thì IDF càng cao.
+    \item \textbf{Truy vấn cụm từ (Phrase Query):} Cho phép tìm các tài liệu chứa một cụm từ theo đúng thứ tự. Ví dụ: truy vấn "tin học" chỉ trả về các tài liệu có "tin" đứng ngay trước "học".
+    
+    \item \textbf{Truy vấn gần (Proximity Query):} Cho phép tìm các tài liệu có hai từ cách nhau trong một khoảng cách nhất định.
+    
+    \item \textbf{Tính điểm nâng cao:} Có thể ưu tiên các từ xuất hiện gần nhau trong tài liệu.
 \end{itemize}
-Một từ quan trọng là từ xuất hiện nhiều trong 1 tài liệu cụ thể (TF cao) nhưng lại ít xuất hiện trong các tài liệu khác (IDF cao)
 
-Các công thức của TF-IDF như sau: 
+Tuy nhiên, chỉ mục vị trí tiêu tốn nhiều bộ nhớ hơn chỉ mục ngược không có vị trí, đặc biệt với các tài liệu dài.
+
+\section{Các mô hình chấm điểm mức độ liên quan của tài liệu}
+Trong hệ thống truy xuất thông tin, sau khi tìm được các tài liệu chứa các từ trong truy vấn, cần một phương pháp để xếp hạng (ranking) các tài liệu đó theo mức độ liên quan với truy vấn. Các mô hình chấm điểm (scoring models) được sử dụng để tính điểm liên quan cho mỗi tài liệu.
+
+\subsection{Mô hình Boolean}
+Mô hình Boolean là mô hình truy xuất cơ bản nhất, sử dụng các toán tử logic (AND, OR, NOT) để kết hợp các điều kiện tìm kiếm. Tài liệu được coi là liên quan hoặc không liên quan (binary), không có xếp hạng.
+
+Ưu điểm:
+\begin{itemize}
+    \item \textbf{Đơn giản:} Dễ hiểu và dễ cài đặt.
+    
+    \item \textbf{Chính xác:} Khi người dùng viết đúng truy vấn, kết quả chính xác.
+    
+    \item \textbf{Hiệu quả cho tìm kiếm chính xác:} Phù hợp khi cần tìm chính xác một tài liệu cụ thể.
+\end{itemize}
+
+Nhược điểm:
+\begin{itemize}
+    \item \textbf{Không có xếp hạng:} Tất cả tài liệu liên quan có cùng điểm, không phân biệt được tài liệu nào liên quan hơn.
+    
+    \item \textbf{Khó viết truy vấn:} Người dùng cần hiểu cách sử dụng toán tử logic.
+    
+    \item \textbf{Nhạy cảm với cách viết:} Kết quả có thể quá nhiều (Recall cao, Precision thấp) hoặc quá ít (Recall thấp, Precision cao) tùy thuộc vào truy vấn.
+\end{itemize}
+
+Trong đề tài này, nhóm cài đặt mô hình Boolean đơn giản với một toán tử logic (AND, OR, NOT) để so sánh với các mô hình xếp hạng khác.
+
+\subsection{TF-IDF}
+TF-IDF (Term Frequency - Inverse Document Frequency) là phương pháp thống kê nhằm đánh giá tầm quan trọng của một từ đối với một tài liệu trong một tập hợp tài liệu \cite{manning2008introduction}. TF-IDF dựa trên hai yếu tố chính:
+
+\begin{enumerate}
+    \item \textbf{Term Frequency (TF) - Tần suất xuất hiện:} Tần suất xuất hiện của từ trong văn bản. Ý tưởng là từ xuất hiện nhiều lần trong tài liệu thì quan trọng hơn.
+    
+    \item \textbf{Inverse Document Frequency (IDF) - Nghịch đảo tần suất tài liệu:} Mức độ hiếm của từ đó trong toàn bộ tập tài liệu. Từ càng hiếm thì IDF càng cao, nghĩa là từ đó phân biệt tốt hơn giữa các tài liệu.
+\end{enumerate}
+
+Một từ quan trọng là từ xuất hiện nhiều trong một tài liệu cụ thể (TF cao) nhưng lại ít xuất hiện trong các tài liệu khác (IDF cao).
+
+Các công thức của TF-IDF:
+
+\textbf{Term Frequency (TF):}
 $$
-TF(t, d) = \frac{\text{Số lần xuất hiện của từ t trong văn bản d}}{\text{Tổng số từ trong văn bản d}}
+TF(t, d) = \frac{\text{Số lần xuất hiện của từ } t \text{ trong văn bản } d}{\text{Tổng số từ trong văn bản } d}
 $$
+
+Hoặc công thức logarithm để giảm ảnh hưởng của tần suất lớn:
+$$
+TF(t, d) = 1 + \log(\text{Số lần xuất hiện của từ } t \text{ trong văn bản } d)
+$$
+
+\textbf{Inverse Document Frequency (IDF):}
 $$
 IDF(t, D) = \log \left( \frac{\text{Tổng số văn bản}}{\text{Tổng số văn bản có chứa từ } t} \right)
 $$
-$$
-TF-IDF(t, d, D) = TF(t, d) \times IDF(t, D)
-$$
-Từ công thức này có thể chấm điểm độ liên quan với một truy vấn
 
-\subsection{BM25}
-BM25 là một biến thể nâng cao của mô hình TF-IDF, thuộc họ các mô hình truy hồi thông tin dựa trên xác suất.Công thức phổ biến nhất để tính điểm BM25 của một tài liệu $D$ đối với truy vấn $Q$ (chứa các từ khóa $q_1, q_2, ..., q_n$) là:$$\text{score}(D, Q) = \sum_{i=1}^{n} \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{\text{avgdl}})}$$
-Trong đó:
+Công thức có smoothing để tránh chia cho 0:
+$$
+IDF(t, D) = \log \left( \frac{N}{n_t} + 1 \right)
+$$
+
+\textbf{TF-IDF:}
+$$
+TF\text{-}IDF(t, d, D) = TF(t, d) \times IDF(t, D)
+$$
+
+Từ công thức này có thể chấm điểm độ liên quan của một tài liệu với truy vấn bằng cách cộng TF-IDF của các từ trong truy vấn.
+
+Để đánh giá độ tương đồng giữa truy vấn và tài liệu, ta sử dụng độ đo cosine similarity \cite{manning2008introduction}:
+$$
+similarity(q, d) = \frac{\vec{q} \cdot \vec{d}}{|\vec{q}| \times |\vec{d}|} = \frac{\sum_{i=1}^{n} q_i \times d_i}{\sqrt{\sum_{i=1}^{n} q_i^2} \times \sqrt{\sum_{i=1}^{n} d_i^2}}
+$$
+
+Trong đó $\vec{q}$ và $\vec{d}$ là vector biểu diễn truy vấn và tài liệu trong không gian nhiều chiều, mỗi chiều tương ứng một từ trong từ điển.
+
+Ưu điểm của TF-IDF:
 \begin{itemize}
-    \item $f(q_i, D)$: Tần suất xuất hiện của từ khóa $q_i$ trong tài liệu $D$.
-    \item $|D|$: Độ dài của tài liệu $D$ (tổng số từ).
-    \item $\text{avgdl}$: Độ dài trung bình của tất cả các tài liệu trong tập dữ liệu.
-    \item $k_1$: Một tham số tự do (thường chọn từ $1.2$ đến $2.0$). Nó kiểm soát mức độ ảnh hưởng của tần suất từ khóa(TF).
-    \item $b$: Một tham số tự do (thường là $0.75$). Nó quyết định mức độ ảnh hưởng của độ dài tài liệu, chuẩn hóa theo độ dài tài liệu.
-    \item $\text{IDF}(q_i)$: Trọng số nghịch đảo của tần suất tài liệu, thường được tính bằng:$$\text{IDF}(q_i) = \ln \left( \frac{N - n(q_i) + 0.5}{n(q_i) + 0.5} + 1 \right)$$(với $N$ là tổng số tài liệu và $n(q_i)$ là số tài liệu chứa từ $q_i$).
+    \item \textbf{Đơn giản:} Dễ hiểu và dễ cài đặt.
+    
+    \item \textbf{Hiệu quả:} Tính toán nhanh, phù hợp với tập dữ liệu vừa và lớn.
+    
+    \item \textbf{Xếp hạng:} Cung cấp điểm liên quan để xếp hạng tài liệu.
 \end{itemize}
 
-Giải thích 2 tham số ảnh hưởng $k_1$ và $b$. 
+Nhược điểm:
+\begin{itemize}
+    \item \textbf{Giả định độc lập giữa các từ:} Không xử lý được mối quan hệ giữa các từ.
+    
+    \item \textbf{Không xử lý từ đồng nghĩa:} "Máy tính" và "computer" được coi là hai từ khác nhau.
+    
+    \item \textbf{Không xử lý từ đồng âm:} "Bank" (ngân hàng) và "bank" (bờ sông) được coi là cùng một từ.
+    
+    \item \textbf{Nhạy cảm với độ dài tài liệu:} Tài liệu dài có xu hướng có TF cao hơn.
+\end{itemize}
+
+\subsection{BM25}
+BM25 (Best Matching 25) là một biến thể nâng cao của mô hình TF-IDF, thuộc họ các mô hình truy hồi thông tin dựa trên xác suất (Probabilistic Relevance Framework) \cite{BM25}. BM25 được phát triển bởi Stephen Robertson và các cộng sự vào những năm 1970-1990 và đã trở thành một trong những phương pháp chấm điểm phổ biến nhất trong các hệ thống tìm kiếm.
+
+Công thức BM25 để tính điểm của một tài liệu $D$ đối với truy vấn $Q$ (chứa các từ khóa $q_1, q_2, ..., q_n$):
+$$
+\text{score}(D, Q) = \sum_{i=1}^{n} \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot (1 - b + b \cdot \frac{|D|}{\text{avgdl}})}
+$$
+
+Trong đó:
+\begin{itemize}
+    \item $f(q_i, D)$: Tần suất xuất hiện của từ khóa $q_i$ trong tài liệu $D$ (raw term frequency).
+    
+    \item $|D|$: Độ dài của tài liệu $D$ (tổng số từ trong tài liệu).
+    
+    \item $\text{avgdl}$: Độ dài trung bình của tất cả các tài liệu trong tập dữ liệu.
+    
+    \item $k_1$: Một tham số tự do (thường chọn từ $1.2$ đến $2.0$, mặc định 1.5). Nó kiểm soát mức độ ảnh hưởng của tần suất từ khóa (TF saturation).
+    
+    \item $b$: Một tham số tự do (thường là $0.75$). Nó quyết định mức độ ảnh hưởng của độ dài tài liệu (length normalization).
+    
+    \item $\text{IDF}(q_i)$: Trọng số nghịch đảo của tần suất tài liệu, thường được tính bằng công thức Okapi:$$\text{IDF}(q_i) = \ln \left( \frac{N - n(q_i) + 0.5}{n(q_i) + 0.5} + 1 \right)$$
+    
+    \begin{itemize}
+        \item[] Với $N$ là tổng số tài liệu và $n(q_i)$ là số tài liệu chứa từ $q_i$.
+    \end{itemize}
+\end{itemize}
+
+Hai tham số quan trọng $k_1$ và $b$ kiểm soát các đặc tính của BM25:
 
 \begin{enumerate}
-  \item \textbf{TF saturation:} Khi $TF$ tăng, điểm số tăng nhưng với tốc độ giảm dần (diminishing returns). Được kiểm soát bởi $k_1$.
+    \item \textbf{TF Saturation (Bão hòa TF):} Khi $TF$ tăng, điểm số tăng nhưng với tốc độ giảm dần (diminishing returns). Được kiểm soát bởi $k_1$.
     \begin{itemize}
-      \item $k_1 = 0$: TF không ảnh hưởng
-      \item $k_1 \to \infty$: TF ảnh hưởng tuyến tính
+        \item $k_1 = 0$: TF không ảnh hưởng đến điểm số (giống như binary).
+        
+        \item $k_1 \to \infty$: TF ảnh hưởng tuyến tính (giống như TF-IDF thuần túy).
     \end{itemize}
-  \item \textbf{Length normalization:} Chuẩn hóa theo độ dài document, được kiểm soát bởi $b$.
+    
+    \item \textbf{Length Normalization (Chuẩn hóa độ dài):} Chuẩn hóa theo độ dài document, được kiểm soát bởi $b$.
     \begin{itemize}
-      \item $b = 0$: Không chuẩn hóa theo độ dài
-      \item $b = 1$: Chuẩn hóa hoàn toàn theo độ dài
+        \item $b = 0$: Không chuẩn hóa theo độ dài.
+        
+        \item $b = 1$: Chuẩn hóa hoàn toàn theo độ dài.
     \end{itemize}
-  \item \textbf{IDF:} Term hiếm có IDF cao $\rightarrow$ đóng góp lớn hơn vào điểm số.
+    
+    \item \textbf{IDF:} Từ hiếm có IDF cao $\rightarrow$ đóng góp lớn hơn vào điểm số.
 \end{enumerate}
 
+Các giá trị mặc định $k_1 = 1.5$ và $b = 0.75$ được khuyến nghị dựa trên nhiều thực nghiệm trên các tập dữ liệu khác nhau \cite{BM25}. Tuy nhiên, các giá trị tối ưu có thể khác nhau tùy thuộc vào tập dữ liệu và loại truy vấn.
+
+Ưu điểm của BM25:
+\begin{itemize}
+    \item \textbf{TF Saturation:} Tránh tình trạng tài liệu có từ khóa xuất hiện quá nhiều lần chiếm ưu thế.
+    
+    \item \textbf{Length Normalization:} Công bằng giữa tài liệu dài và ngắn.
+    
+    \item \textbf{Hiệu quả được chứng minh:} Là một trong những phương pháp hiệu quả nhất trong các tham chiếu đánh giá TREC.
+    
+    \item \textbf{Ít tham số:} Chỉ có 2 tham số cần điều chỉnh ($k_1$ và $b$).
+\end{itemize}
+
+Nhược điểm:
+\begin{itemize}
+    \item \textbf{Không xử lý ngữ nghĩa:} Vẫn dựa trên từ khóa chính xác.
+    
+    \item \textbf{Không xử lý từ đồng nghĩa:} "Máy tính" và "computer" vẫn là hai từ khác nhau.
+    
+    \item \textbf{Không xử lý thứ tự từ:} Không xem xét vị trí của các từ trong câu.
+\end{itemize}
+
+BM25 đã trở thành tiêu chuẩn trong nhiều hệ thống tìm kiếm, bao gồm cả Elasticsearch.
 
 \section{Các thước đo đánh giá}
-Với cách đánh giá dựa trên thứ hạng, đề tài sử dụng một số thước đo như sau:
+Với cách đánh giá dựa trên thứ hạng (rank-based evaluation), đề tài sử dụng một số thước đo phổ biến để đánh giá chất lượng của các mô hình truy xuất \cite{manning2008introduction}.
 
 \subsection{Precision@K (Precision at K)}
+Precision at K (P@K) là tỷ lệ giữa số lượng tài liệu liên quan được tìm thấy trong $K$ kết quả đầu tiên chia cho giá trị $K$. Chỉ số này trả lời cho câu hỏi: "Trong số K kết quả mà hệ thống trả về, có bao nhiêu phần trăm thực sự hữu ích?"
 
-Precision at k là tỷ lệ giữa số lượng tài liệu liên quan được tìm thấy trong $k$ kết quả đầu tiên chia cho giá trị $k$. Chỉ số này trả lời cho câu hỏi: "Trong số k kết quả mà hệ thống đề xuất, có bao nhiêu phần trăm thực sự hữu ích?"
-
-Công thức: $\mathrm{Precision}@k \;=\; \frac{\#\{\text{tài liệu liên quan trong }k\text{ kết quả đầu tiên}\}}{k}$
+Công thức:
+$$
+\mathrm{Precision}@K = \frac{\#\{\text{tài liệu liên quan trong } K \text{ kết quả đầu tiên}\}}{K}
+$$
 
 Đặc điểm của thước đo:
 \begin{itemize}
-    \item Chỉ quan tâm đến tập kết quả hàng đầu, không quan tâm đến các tài liệu liên quan nằm ngoài vị trí $k$.
-    \item Dễ hiểu và trực quan đối với người dùng cuối (ví dụ: trang đầu tiên của Google thường có $k=10$).
+    \item Chỉ quan tâm đến tập K kết quả hàng đầu, không quan tâm đến các tài liệu liên quan nằm ngoài vị trí $K$.
+    
+    \item Dễ hiểu và trực quan đối với người dùng cuối (ví dụ: trang đầu tiên của Google thường hiển thị $K=10$ kết quả).
+    
+    \item Thường được sử dụng trong các ứng dụng thực tế nơi người dùng chỉ xem một số lượng nhỏ kết quả.
 \end{itemize}
-Nhược điểm của thước đo là không tính đến thứ tự của các tài liệu liên quan bên trong tập $k$ (ví dụ: tài liệu liên quan nằm ở vị trí thứ 1 hay thứ 10 thì P@10 vẫn như nhau).
 
-\subsection{Recall at k (R@k)}
-Recall at k là tỷ lệ giữa số lượng tài liệu liên quan được tìm thấy trong $k$ kết quả đầu tiên chia cho tổng số tài liệu liên quan thực tế có trong toàn bộ cơ sở dữ liệu. Nó trả lời cho câu hỏi: "Hệ thống đã tìm thấy được bao nhiêu phần trăm tài liệu tốt trong tổng số tài liệu tốt hiện có chỉ với k kết quả đầu?". Công thức của Recall@K:
-\[
-\begin{aligned}
-\text{Recall}@k &= \frac{\#\{\text{tài liệu liên quan được tìm thấy trong }k\text{ kết quả đầu tiên}\}}
-{\#\{\text{tổng số tài liệu liên quan trong toàn bộ cơ sở dữ liệu}\}}\\[6pt]
-\end{aligned}
-\]
-R@k luôn tăng hoặc giữ nguyên khi $k$ tăng. Chỉ số này rất quan trọng trong các hệ thống mà việc bỏ sót thông tin là nghiêm trọng (ví dụ: tìm kiếm hồ sơ y tế hoặc bằng sáng chế).
+Nhược điểm:
+\begin{itemize}
+    \item Không tính đến thứ tự của các tài liệu liên quan bên trong tập $K$ (ví dụ: tài liệu liên quan nằm ở vị trí thứ 1 hay thứ 10 thì P@10 vẫn như nhau).
+    
+    \item Không phản ánh đầy đủ chất lượng khi số tài liệu liên quan thực tế nhỏ hơn $K$.
+\end{itemize}
 
-\subsection{F1 at k (F1@k)}
-F1 at k là trung bình điều hòa giữa Precision@k và Recall@k. Nó giúp cân bằng giữa việc tìm đúng (Precision) và tìm đủ (Recall) trong phạm vi $k$ kết quả đầu tiên.
-\[
-\begin{aligned}
-$F1@k = 2 \cdot \frac{P@k \cdot R@k}{P@k + R@k}$
-\end{aligned}
-\]
+\subsection{Recall at K (Recall at K)}
+Recall at K (R@K) là tỷ lệ giữa số lượng tài liệu liên quan được tìm thấy trong $K$ kết quả đầu tiên chia cho tổng số tài liệu liên quan thực tế có trong toàn bộ cơ sở dữ liệu. Chỉ số này trả lời cho câu hỏi: "Hệ thống đã tìm thấy được bao nhiêu phần trăm tài liệu tốt trong tổng số tài liệu tốt hiện có chỉ với K kết quả đầu tiên?"
 
+Công thức:
+$$
+\text{Recall}@K = \frac{\#\{\text{tài liệu liên quan được tìm thấy trong } K \text{ kết quả đầu tiên}\}}{\#\{\text{tổng số tài liệu liên quan trong toàn bộ cơ sở dữ liệu}\}}
+$$
+
+Đặc điểm:
+\begin{itemize}
+    \item R@K luôn tăng hoặc giữ nguyên khi $K$ tăng.
+    
+    \item Rất quan trọng trong các hệ thống mà việc bỏ sót thông tin là nghiêm trọng (ví dụ: tìm kiếm hồ sơ y tế hoặc bằng sáng chế).
+    
+    \item Trong thực tế, thường có sự đánh đổi giữa Precision và Recall.
+\end{itemize}
+
+Nhược điểm:
+\begin{itemize}
+    \item Không phản ánh chất lượng xếp hạng - chỉ cần đưa tất cả tài liệu liên quan vào top K (có thể rất lớn) để đạt Recall cao.
+\end{itemize}
+
+\subsection{F1 at K (F1 at K)}
+F1 at K (F1@K) là trung bình điều hòa (harmonic mean) giữa Precision@K và Recall@K. Nó giúp cân bằng giữa việc tìm đúng (Precision) và tìm đủ (Recall) trong phạm vi $K$ kết quả đầu tiên:
+
+$$
+F1@K = 2 \cdot \frac{P@K \times R@K}{P@K + R@K}
+$$
+
+F1@K đạt giá trị cao khi cả Precision@K và Recall@K đều cao, và là thước đo cân bằng hơn so với chỉ sử dụng một trong hai.
 
 \subsection{Mean Reciprocal Rank (MRR)}
-MRR là giá trị trung bình của các Reciprocal Rank (nghịch đảo của thứ hạng) trên một tập hợp các truy vấn hoặc các mốc thời gian.
+MRR là giá trị trung bình của các Reciprocal Rank (RR - nghịch đảo của thứ hạng) trên một tập hợp các truy vấn. MRR tập trung vào vị trí của tài liệu liên quan đầu tiên.
 
-Khác với Precision@k (chỉ quan tâm đến số lượng trong top k), MRR tập trung vào vị trí của tài liệu liên quan đầu tiên. Nếu hệ thống đưa tài liệu đúng lên vị trí số 1, nó sẽ nhận điểm tối đa. Nếu tài liệu đúng nằm càng xa vị trí đầu tiên, điểm số sẽ giảm dần theo hàm nghịch đảo.
+Công thức tính Reciprocal Rank (RR) cho từng truy vấn $i$:
+$$
+RR_i = \frac{1}{rank_i}
+$$
 
-Công thức tính toán như sau:
-Trước hết ta tính Reciprocal Rank (RR) cho từng truy vấn $i$:
-\[
-\begin{aligned}
-$RR_i = \frac{1}{rank_i}$
-\end{aligned}
-\]
 Trong đó $rank_i$ là vị trí của tài liệu liên quan đầu tiên được tìm thấy cho truy vấn đó. Nếu không có tài liệu liên quan nào được tìm thấy, $RR_i = 0$.
 
-Mean Reciprocal Rank (MRR) được tính bằng trung bình cộng của các $RR_i$ trên tổng số $N$ truy vấn:$$MRR = \frac{1}{N} \sum_{i=1}^{N} \frac{1}{rank_i}$$
+Mean Reciprocal Rank (MRR):
+$$MRR = \frac{1}{N} \sum_{i=1}^{N} RR_i = \frac{1}{N} \sum_{i=1}^{N} \frac{1}{rank_i}$$
 
-Một số đặc điểm của thước đo này:
+Đặc điểm của MRR:
 \begin{itemize}
-    \item Ưu tiên vị trí dẫn đầu: MRR cực kỳ nhạy bén với việc tài liệu đúng nằm ở vị trí thứ 1 hay thứ 2. Ví dụ: vị trí thứ 1 cho 1 điểm, nhưng vị trí thứ 2 chỉ còn 0.5 điểm.
-    \item Phù hợp với tìm kiếm thực tế: Rất phù hợp cho các hệ thống mà người dùng chỉ cần tìm thấy một kết quả đúng duy nhất (như tìm kiếm câu trả lời cho một câu hỏi cụ thể hoặc chọn một cặp tiền tệ tốt nhất để giao dịch).
-    \item Hạn chế: MRR chỉ quan tâm đến tài liệu liên quan đầu tiên. Nếu một danh sách có nhiều tài liệu liên quan khác ở phía sau, MRR sẽ hoàn toàn bỏ qua chúng.
+    \item \textbf{Ưu tiên vị trí dẫn đầu:} MRR cực kỳ nhạy bén với việc tài liệu đúng nằm ở vị trí thứ 1 hay thứ 2. Ví dụ: vị trí thứ 1 cho 1 điểm, nhưng vị trí thứ 2 chỉ còn 0.5 điểm.
+    
+    \item \textbf{Phù hợp với tìm kiếm thực tế:} Rất phù hợp cho các hệ thống mà người dùng chỉ cần tìm thấy một kết quả đúng duy nhất (như tìm kiếm câu trả lời cho một câu hỏi cụ thể).
+    
+    \item \textbf{Đơn giản:} Chỉ cần biết vị trí của tài liệu liên quan đầu tiên.
 \end{itemize}
 
+Hạn chế:
+\begin{itemize}
+    \item MRR chỉ quan tâm đến tài liệu liên quan đầu tiên. Nếu một danh sách có nhiều tài liệu liên quan khác ở phía sau, MRR sẽ hoàn toàn bỏ qua chúng.
+    
+    \item Không phản ánh chất lượng xếp hạng của toàn bộ danh sách.
+\end{itemize}
+
+MRR được sử dụng rộng rãi trong các tham chiếu như TREC, MQAP, v.v.
+
+\subsection{Mean Average Precision (MAP)}
+MAP là trung bình cộng của Average Precision (AP) trên tất cả các truy vấn. AP đánh giá toàn diện hơn MRR vì nó tính đến vị trí của tất cả các tài liệu liên quan, không chỉ tài liệu đầu tiên \cite{manning2008introduction}.
+
+Average Precision (AP) được tính bằng trung bình cộng của độ chính xác tại mỗi vị trí mà tài liệu liên quan xuất hiện:
+
+$$
+AP = \frac{1}{|R|}\sum_{i=1}^{n} P(i) \times rel(i)
+$$
+
+Trong đó:
+\begin{itemize}
+    \item $|R|$: Tổng số tài liệu liên quan trong toàn bộ cơ sở dữ liệu.
+    
+    \item $P(i)$: Precision tại vị trí $i$ (tức là P@i).
+    
+    \item $rel(i)$: 1 nếu tài liệu tại vị trí $i$ liên quan, 0 nếu không.
+\end{itemize}
+
+Hoặc viết gọn hơn:
+$$
+AP = \frac{1}{|R|} \times \sum_{k: rank_k \text{ liên quan}} \frac{k}{\text{rank}_k}
+$$
+
+Mean Average Precision (MAP):
+$$
+MAP = \frac{1}{Q}\sum_{q=1}^{Q} AP_q
+$$
+
+Đặc điểm của MAP:
+\begin{itemize}
+    \item \textbf{Đánh giá toàn diện:} Tính đến vị trí của tất cả các tài liệu liên quan.
+    
+    \item \textbf{Xếp hạng cao cho hệ thống tốt:} Hệ thống đưa tài liệu liên quan lên đầu sẽ có MAP cao.
+    
+    \item \textbf{Nhạy cảm với thứ tự:} Phản ánh chính xác chất lượng xếp hạng.
+\end{itemize}
+
+MAP đánh giá toàn diện hơn MRR vì nó tính đến vị trí của tất cả các tài liệu liên quan, kh��ng chỉ tài liệu đầu tiên.
 
 \section{Elasticsearch}
-Elasticsearch là một công cụ dựa trên phần mềm Lucene - phần mềm tìm kiếm và truy xuất thông tin với hơn 15 năm kinh nghiệm về truy vấn toàn bộ văn bản và tìm kiếm. Nó cung cấp một bộ máy tìm kiếm dạng phân tán, có đầy đủ công cụ với một giao diện web HTTP có hỗ trợ dữ liệu JSON. Elasticsearch được phát triển bằng Java và được phát hành dạng mã nguồn mở theo giấy phép Apache. Elasticsearch là một CSDL kiểu NoSQL với nhiệm vụ chính là lưu và truy vấn tài liệu. Trong Elasticsearch, tất cả các tài liệu được hiển thị dưới dạng JSON. 
+Elasticsearch là một công cụ tìm kiếm và phân tích phân tán mạnh mẽ, được xây dựng trên nền tảng Apache Lucene - một thư viện tìm kiếm và truy xuất thông tin mã nguồn mở với hơn 15 năm kinh nghiệm \cite{elasticsearch}. Elasticsearch cung cấp một bộ máy tìm kiếm phân tán, có đầy đủ công cụ với giao diện web HTTP và hỗ trợ dữ liệu JSON. Được phát triển bằng Java và phát hành theo giấy phép Apache 2.0, Elasticsearch là một CSDL kiểu NoSQL với nhiệm vụ chính là lưu trữ và truy vấn tài liệu.
+
+Elasticsearch đã trở thành một trong những công cụ tìm kiếm phổ biến nhất trong các ứng dụng doanh nghiệp nhờ các đặc điểm:
+\begin{itemize}
+    \item \textbf{Phân tán và mở rộng:} Dễ dàng mở rộng theo chiều ngang bằng cách thêm node.
+    
+    \item \textbf{Tìm kiếm full-text:} Hỗ trợ tìm kiếm toàn văn với nhiều tính năng nâng cao.
+    
+    \item \textbf{Real-time:} Dữ liệu được đánh chỉ mục và có thể truy vấn ngay lập tức.
+    
+    \item \textbf{RESTful API:} Giao diện HTTP/JSON dễ sử dụng với nhiều ngôn ngữ lập trình.
+    
+    \item \textbf{Hệ sinh thái:} Nhiều tool và plugin hỗ trợ (Kibana, Logstash, Beats).
+\end{itemize}
 
 \subsection{Các thành phần chính}
 
-\subsubsection{Tài liệu (Document)}
-Một tài liệu là bản ghi thông tin nhỏ nhất được lưu bởi Elasticsearch và được biểu diễn dưới dạng JSON. Một tài liệu bao gồm nhiều trường cặp khóa-giá trị (key-value) với các kiểu khác nhau và có thể có schema xác định trước hoặc không có schema, suy đoán kiểu dữ liệu của các trường mới khi chúng được lập chỉ mục.
+\subsubsubsection{Tài liệu (Document)}
+Một tài liệu (Document) là bản ghi thông tin nhỏ nhất được lưu bởi Elasticsearch và được biểu diễn dưới dạng JSON. Mỗi tài liệu có một ID duy nhất và chứa dữ liệu của các trường (fields) dưới dạng cặp khóa-giá trị (key-value). Elasticsearch hỗ trợ nhiều kiểu dữ liệu như text, keyword, number, date, boolean, geo, v.v.
 
-\subsubsection{Chỉ mục (Index)}
-Một chỉ mục là một tập hợp logic của các document có cùng schema, được xác định bằng một tên chỉ mục.
+\subsubsubsection{Chỉ mục (Index)}
+Một chỉ mục (Index) là tập hợp logical của các document có cùng schema (mặc định). Mỗi index có một tên duy nhất và có thể được chia thành nhiều shard.
 
-\subsubsection{Shard}
-Các chỉ mục của Elasticsearch được chia thành các đơn vị có thể quản lý gọi là shard, là tập hợp các document. Shard là đơn vị cơ bản của tìm kiếm và được sao chép trên nhiều node để dự phòng và chịu lỗi.
+\subsubsubsection{Shard}
+Các chỉ mục của Elasticsearch được chia thành các đơn vị có thể quản lý gọi là shard, là tập hợp các document. Shard là đơn vị cơ bản của tìm kiếm và có thể được sao chép (replica) trên nhiều node để dự phòng và chịu lỗi.
 
-\subsubsection{Node}
-Một node là một máy ảo(instance) độc lập của Elasticsearch và quản lý một tập hợp các shard thuộc về một hoặc nhiều chỉ mục. Node có thể có các vai trò khác nhau như data node, master node và ingest node.
+\subsubsubsection{Node}
+Một node là một máy ảo (instance) độc lập của Elasticsearch, quản lý một tập hợp các shard thuộc về một hoặc nhiều chỉ mục. Node có thể có các vai trò khác nhau:
+\begin{itemize}
+    \item \textbf{Master node:} Quản lý cluster, metadata.
+    
+    \item \textbf{Data node:} Lưu trữ và xử lý dữ liệu.
+    
+    \item \textbf{Ingest node:} Tiền xử lý dữ liệu trước khi đánh chỉ mục.
+    
+    \item \textbf{Coordinating node:} Tiếp nhận yêu cầu và điều phối.
+\end{itemize}
 
-\subsubsection{Cụm(Cluster)}
-Một cụm trong Elasticsearch là một tập hợp các node được kết nối với nhau. Tất cả node trong một cụm có thể xử lý yêu cầu từ client và giao tiếp với nhau. Mỗi node trong cụm sở hữu một phần shard thuộc về một chỉ mục.
+\subsubsubsection{Cụm (Cluster)}
+Một cụm (Cluster) là tập hợp các node được kết nối với nhau, làm việc cùng nhau để cung cấp khả năng tìm kiếm và lưu trữ phân tán.
 
-\subsection{Cách Elasticsearch đánh chỉ mục (index)}
-Elasticsearch sử dụng một chỉ mục ngược (inverted index) để đánh chỉ mục. Các bước như sau:
+\subsection{Cách Elasticsearch đánh chỉ mục}
+Elasticsearch sử dụng chỉ mục ngược (inverted index) để đánh chỉ mục, tương tự như đã mô tả ở phần trước. Tuy nhiên, Elasticsearch bổ sung thêm nhiều tính năng nâng cao như:
+\begin{itemize}
+    \item \textbf{Phân tích văn bản (Analysis):} Tự động tách từ, chuẩn hóa, và tạo inverted index.
+    
+    \item \textbf{BM25 scoring:} Sử dụng BM25 làm thước đo mặc định để đánh giá liên quan.
+    
+    \item \textbf{Real-time indexing:} Dữ liệu mới được đánh chỉ m��c ngay lập tức (sau 1 giây).
+    
+    \item \textbf{Compressed storage:} Lưu trữ hiệu quả với nén dữ liệu.
+\end{itemize}
+
+Quá trình đánh chỉ mục trong Elasticsearch:
 \begin{enumerate}
-    \item Người dùng gửi một tài liệu dưới dạng JSON để Elasticsearch lập chỉ mục. Nếu tài liệu đã tồn tại, các trường mới được thêm vào và các trường hiện có bị ghi đè. Node nhận yêu cầu đầu tiên là "node điều phối".
-    \item Node điều phối xác định primary shard của tài liệu đến, thường dựa trên ID của document, và chuyển tiếp yêu cầu tới data node sở hữu primary shard đó.
-    \item Primary shard xác thực thao tác và thực thi nó tại chỗ.
-    \item Primary shard sau đó chuyển tiếp thao tác tới tất cả replica của nó một cách song song.
-    \item Các replica shard áp dụng thao tác tại chỗ trên các node của chúng.
-    \item Các bước 6, 7 và 8 thể hiện việc xác nhận ghi (acknowledgment) bắt đầu từ replica shard lên primary shard, tới node điều phối, và tới node yêu cầu.
+    \item Người dùng gửi một tài liệu dưới dạng JSON đến Elasticsearch. Node nhận yêu cầu đầu tiên là "node điều phối" (coordinating node).
+    
+    \item Node điều phối xác định primary shard của tài liệu (dựa trên ID hoặc hash) và chuyển tiếp yêu cầu đến data node sở hữu primary shard đó.
+    
+    \item Primary shard xác thực và thực thi thao tác ghi tại chỗ.
+    
+    \item Primary shard sau đó chuyển tiếp thao tác đến tất cả replica shard một cách song song.
+    
+    \item Các replica shard áp dụng thao tác và trả về acknowledgment.
+    
+    \item Khi đủ số replication đạt yêu cầu, primary trả về kết quả thành công cho node điều phối và cho người dùng.
 \end{enumerate}
+
+Hình \ref{fig:elasticsearch-architecture-indexing} minh họa các bước lập chỉ mục trong Elasticsearch.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Hinhve/elasticsearch-architecture-1.png}
@@ -223,33 +551,70 @@ Elasticsearch sử dụng một chỉ mục ngược (inverted index) để đá
 \end{figure}
 
 \subsection{Cách Elasticsearch truy vấn}
-Elasticsearch sử dụng BM25 làm thước đo mặc định đánh giá xếp hạng mức độ liên quan của truy vấn với tài liệu. Ngoài ra thì TF-IDF cũng có thể được sử dụng nếu được chỉ định. Elasticsearch hỗ trợ các loại truy vấn như:
+
+\subsubsubsection{BM25 - Thước đo mặc định}
+Elasticsearch sử dụng BM25 làm thước đo mặc định để đánh giá xếp hạng mức độ liên quan của truy vấn với tài liệu. BM25 trong Elasticsearch sử dụng các tham số mặc định $k_1 = 1.2$ và $b = 0.75$, đã được chứng minh hiệu quả trên nhiều tập dữ liệu.
+
+\subsubsubsection{Các loại truy vấn}
+Elasticsearch hỗ trợ nhiều loại truy vấn:
 \begin{itemize}
-    \item Match Query: Sử dụng tìm kiếm toàn văn với phân tích token.
-    \item Term Query: Tìm các kết quả khớp chính xác mà không qua xử lý văn bản.
-    \item Bool Query: Kết hợp nhiều truy vấn bằng các mệnh đề must, should và must\_not.
+    \item \textbf{Match Query:} Tìm kiếm full-text với phân tích token.
+    
+    \item \textbf{Term Query:} Tìm chính xác một giá trị (không qua phân tích).
+    
+    \item \textbf{Bool Query:} Kết hợp nhiều truy vấn bằng các mệnh đề must, should, must\_not, filter.
+    
+    \item \textbf{Range Query:} Tìm trong một khoảng giá trị.
+    
+    \item \textbf{Wildcard Query:} Tìm với ký tự đại diện.
 \end{itemize}
 
-Quá trình thực hiện truy vấn, tìm kiếm gồm các pha như sau:
-\begin{itemize}
-    \item Pha truy vấn: Yêu cầu được phát tới các shard liên quan.
-    \item Pha tính điểm: Mỗi shard tính điểm liên quan của tài liệu.
-    \item Pha tổng hợp: Kết quả được hợp nhất và xếp hạng trước khi trả về phản hồi cuối cùng.
-\end{itemize}
-Các bước truy vấn trong một cụm Elasticsearch như sau:
+\subsubsubsection{Quá trình truy vấn}
+Quá trình truy vấn trong Elasticsearch gồm các pha:
 \begin{enumerate}
-    \item Người dùng hoặc ứng dụng gửi một truy vấn tìm kiếm. Truy vấn có thể được xử lý bởi bất kỳ node nào trong cụm. Node xử lý yêu cầu được gọi là "node điều phối".
-    \item Node điều phối phát broadcast truy vấn tới tất cả các shard liên quan và các replica của chúng.
-    \item Mỗi shard thực thi truy vấn cục bộ và trả về một tập kết quả lightweight cho node điều phối.
-    \item Node điều phối hợp nhất các kết quả nhận được. Đây là kết thúc pha "truy vấn". Pha truy vấn xác định các tài liệu sơ bộ tạo thành kết quả tìm kiếm, nhưng tài liệu đầy đủ vẫn cần được truy xuất.
-    \item Node điều phối gửi yêu cầu truy xuất tới các shard sở hữu, những shard này bổ sung thêm các tài liệu trong tập kết quả.
-    \item Các tài liệu đã được bổ sung được trả về cho node điều phối.
-    \item Tập kết quả tìm kiếm đầy đủ, đã được xếp hạng và đã được bổ sung, được trả về cho người gọi.
+    \item \textbf{Pha truy vấn (Query phase):} Yêu cầu được phát tới các shard liên quan.
+    
+    \item \textbf{Pha tính điểm (Scoring phase):} Mỗi shard tính điểm liên quan của tài liệu.
+    
+    \item \textbf{Pha tổng hợp (Fetch phase):} Kết quả được hợp nhất và xếp hạng.
 \end{enumerate}
+
+Chi tiết các bước truy vấn:
+\begin{enumerate}
+    \item Người dùng hoặc ứng dụng gửi một truy vấn tìm kiếm. Truy vấn có thể được xử lý bởi bất kỳ node nào trong cụm (coordinating node).
+    
+    \item Node điều phối phát broadcast truy vấn đến tất cả các shard liên quan và các replica.
+    
+    \item Mỗi shard thực thi truy vấn cục bộ và trả về một tập kết quả lightweight (chỉ có ID và điểm) cho node điều phối.
+    
+    \item Node điều phối hợp nhất các kết quả và sắp xếp theo điểm.
+    
+    \item Node điều phối gửi yêu cầu truy xuất tài liệu đầy đủ đến các shard sở hữu.
+    
+    \item Các tài liệu đầy đủ được trả về cho node điều phối.
+    
+    \item Kết quả được trả về cho người dùng.
+\end{enumerate}
+
+Hình \ref{fig:elasticsearch-architecture-retrieval} minh họa các bước truy vấn trong Elasticsearch.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Hinhve/elasticsearch-architecture-2.png}
     \caption{Các bước truy vấn trong Elasticsearch}
     \label{fig:elasticsearch-architecture-retrieval}
 \end{figure}
+
+\subsubsubsection{Xử lý ngôn ngữ}
+Elasticsearch hỗ trợ phân tích và tách từ đa ngôn ngữ. Tuy nhiên, bộ phân tích mặc định (standard analyzer) được thiết kế cho tiếng Anh. Với tiếng Việt, cần sử dụng bộ phân tích tùy chỉnh hoặc plugin hỗ trợ tiếng Việt.
+
+Trong đề tài này, nhóm sử dụng hai cách tiếp cận:
+\begin{enumerate}
+    \item \textbf{Chỉ mục bình thường (Normal index):} Sử dụng bộ phân tích mặc định của Elasticsearch (standard analyzer).
+    
+    \item \textbf{Chỉ mục đã xử lý (Processed index):} Tiền xử lý văn bản bằng underthesea, tách từ và nối lại bằng dấu cách trước khi đưa vào Elasticsearch.
+\end{enumerate}
+
+Kết quả cho thấy chỉ mục đã xử lý cho kết quả tốt hơn, chứng tỏ tiền xử lý văn bản tiếng Việt là cần thiết.
+
 \end{document}

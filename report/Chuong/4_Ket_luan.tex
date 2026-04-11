@@ -1,4 +1,48 @@
 \documentclass[../BTL.tex]{subfiles}
 \begin{document}
 
+\section{Tổng kết}
+Đề tài đã hoàn thành việc xây dựng hệ thống truy xuất thông tin văn bản luật Việt Nam với các thành phần chính:
+
+\begin{enumerate}
+    \item \textbf{Hệ thống tiền xử lý văn bản tiếng Việt}: Sử dụng thư viện underthesea \cite{underthesea} để tách từ, chuẩn hóa văn bản và loại bỏ từ dừng.
+    \item \textbf{Chỉ mục ngược}: Xây dựng chỉ mục ngược phục vụ cho việc truy vấn nhanh chóng.
+    \item \textbf{Các mô hình truy xuất}:
+    \begin{itemize}
+        \item Mô hình Boolean: Truy vấn sử dụng toán tử logic AND, OR, NOT.
+        \item Mô hình không gian vector (VSM): Sử dụng TF-IDF và cosine similarity.
+        \item Mô hình BM25: Sử dụng công thức BM25 với các tham số $k_1=1.5, b=0.75$.
+    \end{itemize}
+    \item \textbf{Elasticsearch}: Xây dựng hệ thống tìm kiếm với 2 loại chỉ mục (đã xử lý và chưa xử lý).
+    \item \textbf{Giao diện người dùng}: Xây dựng giao diện web sử dụng Streamlit \cite{streamlit}.
+\end{enumerate}
+
+\section{Kết quả đạt được}
+Kết quả đánh giá trên 2000 truy vấn cho thấy:
+\begin{itemize}
+    \item ES (đã xử lý) đạt MRR = 0.5284, MAP = 0.5284.
+    \item BM25 đạt MRR = 0.5269, MAP = 0.5269.
+    \item Hai phương pháp này vượt trội hơn so với VSM (MRR = 0.3353) và Boolean (MRR = 0.1900).
+\end{itemize}
+
+Điều đáng chú ý là việc tiền xử lý văn bản tiếng Việt (tách từ bằng underthesea) giúp cải thiện đáng kể kết quả tìm kiếm của Elasticsearch.
+
+\section{Hạn chế}
+Một số hạn chế của đề tài:
+\begin{itemize}
+    \item Chi phí tính toán cao với tập dữ liệu lớn (222981 tài liệu).
+    \item Chưa xử lý các trường hợp từ đồng âm, từ đồng nghĩa.
+    \item Mô hình Boolean chưa hỗ trợ nhiều toán tử phức tạp.
+    \item Chưa áp dụng các kỹ thuật học sâu như BERT, biểu diễn ngữ nghĩa.
+\end{itemize}
+
+\section{Hướng phát triển}
+\begin{enumerate}
+    \item Tích hợp các mô hình ngôn ngữ lớn (LLM) như BERT, PhoBERT để biểu diễn ngữ nghĩa tốt hơn.
+    \item Xây dựng hệ thống reranking để cải thiện thứ hạng kết quả.
+    \item Tăng cường xử lý từ đồng nghĩa, từ đồng âm trong tiếng Việt.
+    \item Tối ưu hóa hiệu suất cho tập dữ liệu lớn hơn.
+    \item Triển khai hệ thống với giao diện web thực tế.
+\end{enumerate}
+
 \end{document}
