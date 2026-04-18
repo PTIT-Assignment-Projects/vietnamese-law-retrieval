@@ -23,7 +23,7 @@ Theo thống kê, có tổng cộng 222.981 tài liệu trong corpus, mỗi tài
 \end{itemize}
 
 \subsection{Tập dữ liệu huấn luyện và tập dữ liệu kiểm thử}
-Do đề tài sử dụng các phương pháp đánh giá dựa trên điểm (score-based) không phải huấn luyện mô hình máy học, do đó để đánh giá mô hình nhóm sử dụng kết hợp cả hai tập dữ liệu. Tuy nhiên do giới hạn phần cứng thiết bị, nhóm chỉ sử dụng 2000 mẫu đầu tiên để tiến hành đánh giá. Việc sử dụng 2000 mẫu đầu tiên được chọn dựa trên tính đại diện của dữ liệu và khả năng tính toán có thể.
+Do đề tài sử dụng các phương pháp đánh giá dựa trên điểm (score-based) không phải huấn luyện mô hình máy học, do đó để đánh giá mô hình nhóm sử dụng kết hợp cả hai tập dữ liệu. Tuy nhiên do giới hạn phần cứng thiết bị, nhóm chỉ sử dụng 2000 mẫu đầu tiên để tiến hành đánh giá.
 
 Tập dữ liệu có cấu trúc các cột như sau:
 
@@ -645,7 +645,6 @@ Các tính năng của giao diện:
         \item Score: Điểm số (hoặc "N/A (Match)" cho Boolean)
         \item Nội dung: Văn bản gốc đầy đủ
     \end{itemize}
-    \item \textbf{Hiệu suất hiển thị:} Hiển thị thời gian tìm kiếm để người dùng đánh giá tốc độ.
 \end{enumerate}
 
 Giao diện chương trình minh họa như trên hình \ref{fig:demo-ui}.
@@ -664,7 +663,6 @@ Quy trình xử lý khi người dùng thực hiện tìm kiếm:
     \item Hệ thống tiền xử lý câu hỏi (tách từ, chuẩn hóa).
     \item Gọi phương pháp tìm kiếm đã chọn.
     \item Nhận kết quả và hiển thị lên giao diện.
-    \item Hiển thị thời gian xử lý để người dùng biết.
 \end{enumerate}
 
 Một số lưu ý khi sử dụng giao diện:
