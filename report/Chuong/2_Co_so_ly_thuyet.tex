@@ -34,7 +34,7 @@ Có nhiều phương pháp tách từ khác nhau, mỗi phương pháp có ưu �
     \item \textbf{Số đi kèm đơn vị đo:} Các trường hợp như "10kg", "50km/h", "100.000 đồng" cần được xử lý đặc biệt để giữ nguyên ý nghĩa.
 \end{itemize}
 
-Trong bài toán này, nhóm em sử dụng công cụ hỗ trợ trong Python là thư viện underthesea \cite{underthesea} - một bộ công cụ xử lý ngôn ngữ tự nhiên dành riêng cho tiếng Việt. Thư viện này cung cấp các chức năng tách từ, gán nhãn từ loại, và chuẩn hóa văn bản với độ chính xác cao cho tiếng Việt.
+Các công cụ hỗ trợ tách từ tiếng Việt thường sử dụng các phương pháp học máy như CRF (Conditional Random Fields) hoặc Deep Learning để nhận diện ranh giới từ với độ chính xác cao.
 
 \subsection{Chuẩn hóa văn bản (Text Normalization)}
 Chuẩn hóa văn bản là quá trình chuyển đổi văn bản về một dạng thống nhất để đảm bảo tính nhất quán. Mục đích là loại bỏ các biến thể của cùng một từ để các thuật toán có thể nhận ra chúng như cùng một khái niệm. Các bước chuẩn hóa thường bao gồm:
@@ -49,7 +49,7 @@ Chuẩn hóa văn bản là quá trình chuyển đổi văn bản về một d�
     \item \textbf{Xử lý từ viết tắt:} Mở rộng các từ viết tắt về dạng đầy đủ nếu cần thiết.
 \end{itemize}
 
-Thư viện underthesea cung cấp hàm \texttt{text\_normalize()} để thực hiện việc chuẩn hóa văn bản tiếng Việt một cách tự động.
+Các công cụ chuẩn hóa văn bản tiếng Việt thường cung cấp các hàm tự động để thực hiện các bước chuẩn hóa này.
 
 \subsection{Làm sạch văn bản (Text Cleaning)}
 Làm sạch văn bản là bước loại bỏ các yếu tố không mong muốn hoặc không mang ý nghĩa ngữ nghĩa từ văn bản. Mục đích là giảm nhiễu và tập trung vào nội dung chính. Một số loại nhiễu thường gặp trong văn bản:
@@ -83,7 +83,7 @@ Từ dừng (stopword) là các từ rất phổ biến trong ngôn ngữ nhưng
     \item \textbf{Giảm nhiễu:} Các từ dừng xuất hiện rất thường xuyên trong hầu hết các tài liệu, gây nhiễu cho việc tính điểm liên quan.
 \end{itemize}
 
-Trong đề tài này, nhóm sử dụng một từ điển từ dừng tiếng Việt tự định nghĩa được thu thập từ repository GitHub của tác giả \cite{vietnamese_stopwords} để lọc các từ dừng. Danh sách này chứa khoảng 2000 từ dừng phổ biến trong tiếng Việt.
+Việc xây dựng từ điển từ dừng cho từng ngôn ngữ là cần thiết để đảm bảo hiệu quả của bước lọc này.
 
 Về các ký tự đặc biệt, việc loại bỏ những ký tự này cũng để giảm nhiễu. Tuy nhiên, cần cân nhắc ngữ cảnh. Ví dụ: trong phân tích cảm xúc, dấu chấm than "!" có thể mang ý nghĩa tích cực mạnh. Trong văn bản pháp luật, dấu chấm phẩy ";" thường ngăn cách các điều khoản nên mang ý nghĩa quan trọng.
 
@@ -98,7 +98,7 @@ Trong văn bản có thể có một số lỗi chính tả, lỗi gõ phím ho�
     \item \textbf{Áp dụng quy tắc (Rule-based Correction):} Áp dụng các quy tắc để sửa các lỗi phổ biến. Ví dụ: sửa "nghiep" thành "nghiệp" dựa trên quy tắc ghép dấu.
 \end{itemize}
 
-Trong bài này, nhóm sử dụng thư viện underthesea \cite{underthesea} để hỗ trợ chuẩn hóa và chỉnh sửa từ tiếng Việt. Thư viện này sử dụng các quy tắc ngữ pháp tiếng Việt để chuyển đổi các từ về dạng chuẩn.
+Các phương pháp chỉnh sửa từ sử dụng các quy tắc ngữ pháp của từng ngôn ngữ để chuyển đổi các từ về dạng chuẩn.
 
 \section{Chỉ mục (Indexing)}
 Sau khi tiến hành tiền xử lý để tách từ, bước tiếp theo là xây dựng chỉ mục từ từ điển chứa các từ đã được tách. Chỉ mục (Index) là cấu trúc dữ liệu cho phép truy xuất nhanh chóng các tài liệu chứa một từ hoặc cụm từ cụ thể. Trong hệ thống truy xuất thông tin, chỉ mục đóng vai trò then chốt quyết định tốc độ và hiệu quả của việc tìm kiếm.
@@ -203,8 +203,6 @@ Nhược điểm:
     
     \item \textbf{Nhạy cảm với cách viết:} Kết quả có thể quá nhiều (Recall cao, Precision thấp) hoặc quá ít (Recall thấp, Precision cao) tùy thuộc vào truy vấn.
 \end{itemize}
-
-Trong đề tài này, nhóm cài đặt mô hình Boolean đơn giản với một toán tử logic (AND, OR, NOT) để so sánh với các mô hình xếp hạng khác.
 
 \subsection{TF-IDF}
 TF-IDF (Term Frequency - Inverse Document Frequency) là phương pháp thống kê nhằm đánh giá tầm quan trọng của một từ đối với một tài liệu trong một tập hợp tài liệu \cite{manning2008introduction}. TF-IDF dựa trên hai yếu tố chính:
@@ -490,16 +488,16 @@ Elasticsearch đã trở thành một trong những công cụ tìm kiếm phổ
 
 \subsection{Các thành phần chính}
 
-\subsubsubsection{Tài liệu (Document)}
+\subsubsection{Tài liệu (Document)}
 Một tài liệu (Document) là bản ghi thông tin nhỏ nhất được lưu bởi Elasticsearch và được biểu diễn dưới dạng JSON. Mỗi tài liệu có một ID duy nhất và chứa dữ liệu của các trường (fields) dưới dạng cặp khóa-giá trị (key-value). Elasticsearch hỗ trợ nhiều kiểu dữ liệu như text, keyword, number, date, boolean, geo, v.v.
 
-\subsubsubsection{Chỉ mục (Index)}
+\subsubsection{Chỉ mục (Index)}
 Một chỉ mục (Index) là tập hợp logical của các document có cùng schema (mặc định). Mỗi index có một tên duy nhất và có thể được chia thành nhiều shard.
 
-\subsubsubsection{Shard}
+\subsubsection{Shard}
 Các chỉ mục của Elasticsearch được chia thành các đơn vị có thể quản lý gọi là shard, là tập hợp các document. Shard là đơn vị cơ bản của tìm kiếm và có thể được sao chép (replica) trên nhiều node để dự phòng và chịu lỗi.
 
-\subsubsubsection{Node}
+\subsubsection{Node}
 Một node là một máy ảo (instance) độc lập của Elasticsearch, quản lý một tập hợp các shard thuộc về một hoặc nhiều chỉ mục. Node có thể có các vai trò khác nhau:
 \begin{itemize}
     \item \textbf{Master node:} Quản lý cluster, metadata.
@@ -511,7 +509,7 @@ Một node là một máy ảo (instance) độc lập của Elasticsearch, qu�
     \item \textbf{Coordinating node:} Tiếp nhận yêu cầu và điều phối.
 \end{itemize}
 
-\subsubsubsection{Cụm (Cluster)}
+\subsubsection{Cụm (Cluster)}
 Một cụm (Cluster) là tập hợp các node được kết nối với nhau, làm việc cùng nhau để cung cấp khả năng tìm kiếm và lưu trữ phân tán.
 
 \subsection{Cách Elasticsearch đánh chỉ mục}
@@ -552,10 +550,10 @@ Hình \ref{fig:elasticsearch-architecture-indexing} minh họa các bước lậ
 
 \subsection{Cách Elasticsearch truy vấn}
 
-\subsubsubsection{BM25 - Thước đo mặc định}
+\subsubsection{BM25 - Thước đo mặc định}
 Elasticsearch sử dụng BM25 làm thước đo mặc định để đánh giá xếp hạng mức độ liên quan của truy vấn với tài liệu. BM25 trong Elasticsearch sử dụng các tham số mặc định $k_1 = 1.2$ và $b = 0.75$, đã được chứng minh hiệu quả trên nhiều tập dữ liệu.
 
-\subsubsubsection{Các loại truy vấn}
+\subsubsection{Các loại truy vấn}
 Elasticsearch hỗ trợ nhiều loại truy vấn:
 \begin{itemize}
     \item \textbf{Match Query:} Tìm kiếm full-text với phân tích token.
@@ -569,7 +567,7 @@ Elasticsearch hỗ trợ nhiều loại truy vấn:
     \item \textbf{Wildcard Query:} Tìm với ký tự đại diện.
 \end{itemize}
 
-\subsubsubsection{Quá trình truy vấn}
+\subsubsection{Quá trình truy vấn}
 Quá trình truy vấn trong Elasticsearch gồm các pha:
 \begin{enumerate}
     \item \textbf{Pha truy vấn (Query phase):} Yêu cầu được phát tới các shard liên quan.
@@ -605,7 +603,7 @@ Hình \ref{fig:elasticsearch-architecture-retrieval} minh họa các bước tru
     \label{fig:elasticsearch-architecture-retrieval}
 \end{figure}
 
-\subsubsubsection{Xử lý ngôn ngữ}
+\subsubsection{Xử lý ngôn ngữ}
 Elasticsearch hỗ trợ phân tích và tách từ đa ngôn ngữ. Tuy nhiên, bộ phân tích mặc định (standard analyzer) được thiết kế cho tiếng Anh. Với tiếng Việt, cần sử dụng bộ phân tích tùy chỉnh hoặc plugin hỗ trợ tiếng Việt.
 
 Trong đề tài này, nhóm sử dụng hai cách tiếp cận:

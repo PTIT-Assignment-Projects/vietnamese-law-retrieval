@@ -149,19 +149,254 @@ Khi phân tích tác động đến kết quả đánh giá, dễ thấy rằng 
 
 
 \section{Xây dựng chỉ mục ngược}
-Đề tài xây dựng chỉ mục ngược (inverted index) để phục vụ cho việc tìm kiếm với các mô hình VSM và BM25. Chỉ mục ngược lưu trữ danh sách các tài liệu chứa mỗi từ, giúp việc tìm kiếm trở nên hiệu quả hơn so với việc duyệt qua toàn bộ corpus.
+\subsection{Quy trình xây dựng chỉ mục ngược}
 
-Các thành phần của chỉ mục ngược:
+Chỉ mục ngược được xây dựng từ tập dữ liệu văn bản pháp luật đã qua tiền xử lý. Quy trình xây dựng chỉ mục ngược bao gồm các bước sau:
+
+\textbf{Bước 1: Tạo cặp (term, docID)}
+
+Với mỗi tài liệu trong corpus, sau khi tách từ và loại bỏ từ dừng, tạo ra danh sách các cặp (term, docID). Ví dụ, nếu tài liệu Doc1 chứa các từ "thuế", "luật", "phạt", ta tạo ra các cặp: (thuế, Doc1), (luật, Doc1), (phạt, Doc1).
+
+\textbf{Bước 2: Sắp xếp}
+
+Sắp xếp tất cả các cặp (term, docID) theo thứ tự từ điển của term, sau đó theo docID. Độ phức tạp của bước này là $O(N \times L \times \log(N \times L))$, với $N$ là số tài liệu và $L$ là độ dài trung bình của tài liệu.
+
+\textbf{Bước 3: Gộp postings}
+
+Duyệt qua danh sách đã sắp xếp và gộp các mục trùng lặp. Với mỗi term, tạo postings list chứa danh sách các docID và tần suất xuất hiện. Cấu trúc dữ liệu được tổ chức dưới dạng từ điển với key là term, value chứa doc\_freq (số tài liệu chứa term) và postings list (danh sách các cặp docID và term frequency).
+
+\textbf{Bước 4: Lưu trữ}
+
+Lưu chỉ mục ngược vào file để tái sử dụng mà không cần xây dựng lại. Chỉ mục được lưu dưới dạng JSON để dễ đọc và xử lý. Kích thước chỉ mục khoảng 150-200 MB cho 222,981 tài liệu.
+
+\subsection{Tối ưu hóa chỉ mục}
+
+Để tăng tốc độ truy vấn, một số tối ưu hóa được áp dụng:
+
+\begin{itemize}
+    \item \textbf{Chỉ mục trong bộ nhớ:} Toàn bộ chỉ mục được nạp vào RAM khi khởi động hệ thống, giúp truy vấn nhanh mà không cần đọc từ đĩa.
+    
+    \item \textbf{Cấu trúc dữ liệu tối ưu:} Sử dụng dictionary của Python với độ phức tạp truy cập $O(1)$ cho việc tìm kiếm term.
+    
+    \item \textbf{Danh sách postings được sắp xếp:} Mỗi postings list được sắp xếp theo docID để tối ưu các phép toán tập hợp (AND, OR).
+\end{itemize}
+
+\subsection{Các phép toán trên chỉ mục ngược}
+
+Các phép toán tập hợp trên chỉ mục ngược được thực hiện bằng thuật toán merge với độ phức tạp tuyến tính.
+
+\textbf{Phép AND:} Tìm các tài liệu chứa cả hai từ.
+
+\begin{algorithm}[H]
+\caption{Intersect (Phép AND)}
+\SetAlgoLined
+\KwIn{$P_1, P_2$ - hai danh sách postings đã sắp xếp}
+\KwOut{$R$ - danh sách kết quả}
+$i \leftarrow 0$, $j \leftarrow 0$, $R \leftarrow []$\;
+\While{$i < |P_1|$ \textbf{and} $j < |P_2|$}{
+    \eIf{$P_1[i] = P_2[j]$}{
+        Thêm $P_1[i]$ vào $R$\;
+        $i \leftarrow i + 1$, $j \leftarrow j + 1$\;
+    }{
+        \eIf{$P_1[i] < P_2[j]$}{
+            $i \leftarrow i + 1$\;
+        }{
+            $j \leftarrow j + 1$\;
+        }
+    }
+}
+\Return{$R$}
+\end{algorithm}
+
+\textbf{Phép OR:} Tìm các tài liệu chứa ít nhất một trong hai từ.
+
+\begin{algorithm}[H]
+\caption{Union (Phép OR)}
+\SetAlgoLined
+\KwIn{$P_1, P_2$ - hai danh sách postings đã sắp xếp}
+\KwOut{$R$ - danh sách kết quả}
+$i \leftarrow 0$, $j \leftarrow 0$, $R \leftarrow []$\;
+\While{$i < |P_1|$ \textbf{and} $j < |P_2|$}{
+    \eIf{$P_1[i] = P_2[j]$}{
+        Thêm $P_1[i]$ vào $R$\;
+        $i \leftarrow i + 1$, $j \leftarrow j + 1$\;
+    }{
+        \eIf{$P_1[i] < P_2[j]$}{
+            Thêm $P_1[i]$ vào $R$, $i \leftarrow i + 1$\;
+        }{
+            Thêm $P_2[j]$ vào $R$, $j \leftarrow j + 1$\;
+        }
+    }
+}
+Nối phần còn lại của $P_1$ hoặc $P_2$ vào $R$\;
+\Return{$R$}
+\end{algorithm}
+
+\textbf{Phép NOT:} Tìm các tài liệu không chứa từ.
+
+\begin{algorithm}[H]
+\caption{Complement (Phép NOT)}
+\SetAlgoLined
+\KwIn{$P$ - danh sách postings của từ cần loại, $D$ - tập tất cả docID}
+\KwOut{$R$ - danh sách kết quả}
+$R \leftarrow D$\;
+\ForEach{$doc \in P$}{
+    Loại bỏ $doc$ khỏi $R$\;
+}
+\Return{$R$}
+\end{algorithm}
 
 
 \section{Các phương pháp truy xuất}
-Đề tài xây dựng và cài đặt 3 phương pháp truy xuất chính, cộng thêm Elasticsearch làm baseline so sánh.
+\subsection{Mô hình Boolean}
 
-Trong đề tài này, mô hình Boolean được cài đặt như sau: đầu tiên, truy vấn được phân tích thành các thành phần (term và toán tử). Sau đó, với mỗi term, hệ thống truy xuất posting list tương ứng từ inverted index. Cuối cùng, các phép toán tập hợp (giao, hợp, phần bù) được thực hiện để tạo ra kết quả cuối cùng. Do không có xếp hạng, tất cả các tài liệu khớp đều được trả về với cùng một mức độ ưu tiên.
+Mô hình Boolean được cài đặt dựa trên các phép toán tập hợp trên chỉ mục ngược.
 
-Với VSM và BM25, hệ thống sử dụng inverted index để tìm các tài liệu ứng viên trước khi tính điểm. Thuật toán tìm kiếm được thực hiện theo các bước: (1) tìm tài liệu chứa các từ trong truy vấn; (2) tính điểm số cho từng tài liệu ứng viên; (3) sắp xếp theo điểm số và trả về top N kết quả.
+\textbf{Cấu trúc truy vấn:}
 
-Với BM25, nhóm sử dụng các tham số mặc định $k_1 = 1.5$ và $b = 0.75$, đây là các giá trị phổ biến đã được chứng minh hiệu quả trên nhiều tập dữ liệu.
+Truy vấn Boolean được biểu diễn dưới dạng cây cú pháp trừu tượng (AST - Abstract Syntax Tree). Mỗi nút trong cây có thể là:
+\begin{itemize}
+    \item \texttt{TERM}: Lá của cây, chứa từ khóa
+    \item \texttt{AND}, \texttt{OR}: Nút trong, có hai con
+    \item \texttt{NOT}: Nút trong, có một con
+\end{itemize}
+
+Ví dụ: truy vấn "thuế AND (luật OR phạt)" được biểu diễn thành cây với nút gốc là AND, nhánh trái là "thuế", nhánh phải là OR của "luật" và "phạt".
+
+\textbf{Thuật toán đánh giá:}
+
+\begin{algorithm}[H]
+\caption{EvaluateBooleanAST}
+\SetAlgoLined
+\KwIn{\textit{node} - nút hiện tại trong cây AST}
+\KwOut{\textit{result} - danh sách postings}
+\Switch{\textit{node}.type}{
+    \Case{TERM}{
+        \Return{$\text{getPostings}(\textit{node}.\text{value})$}
+    }
+    \Case{AND}{
+        $L \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{left})$\;
+        $R \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{right})$\;
+        \Return{$\text{Intersect}(L, R)$}
+    }
+    \Case{OR}{
+        $L \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{left})$\;
+        $R \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{right})$\;
+        \Return{$\text{Union}(L, R)$}
+    }
+    \Case{NOT}{
+        $O \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{child})$\;
+        \Return{$\text{Complement}(O)$}
+    }
+}
+\end{algorithm}
+
+\textbf{Quy trình xử lý truy vấn:}
+
+\begin{enumerate}
+    \item \textbf{Phân tích cú pháp:} Tách truy vấn thành tokens, xác định thứ tự ưu tiên: NOT $>$ AND $>$ OR.
+    \item \textbf{Xây dựng AST:} Chuyển tokens thành cây cú pháp.
+    \item \textbf{Đánh giá:} Gọi $\text{EvaluateBooleanAST}$ trên nút gốc.
+\end{enumerate}
+
+\textbf{Hạn chế:} Do không có cơ chế xếp hạng, tất cả tài liệu khớp được trả về với cùng mức độ ưu tiên.
+
+
+\subsection{Mô hình không gian vector (VSM)}
+
+VSM được cài đặt với các bước sau:
+
+\textbf{Bước 1: Xây dựng không gian vector}
+
+Xác định không gian vector với số chiều bằng số từ duy nhất trong toàn bộ corpus (khoảng 50,000 chiều sau khi loại bỏ từ dừng). Mỗi tài liệu và truy vấn được biểu diễn dưới dạng vector trong không gian này.
+
+\textbf{Bước 2: Tính trọng số TF-IDF}
+
+Với mỗi từ $t$ trong tài liệu $d$, trọng số TF-IDF được tính như sau:
+
+Tần suất xuất hiện của từ $t$ trong tài liệu $d$ được tính bằng số lần xuất hiện của $t$ chia cho tổng số từ trong $d$. Để giảm ảnh hưởng của các tài liệu dài, có thể sử dụng công thức logarit: $TF(t, d) = 1 + \log(\text{số lần xuất hiện của } t)$.
+
+IDF của từ $t$ được tính bằng logarit của tổng số tài liệu chia cho số tài liệu chứa $t$, với công thức smoothing để tránh chia cho 0: $IDF(t) = \log(\frac{N + 1}{n_t + 1}) + 1$, trong đó $N$ là tổng số tài liệu và $n_t$ là số tài liệu chứa từ $t$.
+
+Trọng số TF-IDF cuối cùng là tích của TF và IDF.
+
+\textbf{Bước 3: Truy vấn}
+
+\begin{enumerate}
+    \item Tiền xử lý truy vấn: tách từ, loại bỏ từ dừng.
+    
+    \item Tìm ứng viên: Sử dụng chỉ mục ngược để tìm tất cả tài liệu chứa ít nhất một từ trong truy vấn.
+    
+    \item Tính độ tương đồng cosine: Với mỗi tài liệu ứng viên, tính tích vô hướng của vector truy vấn và vector tài liệu, chia cho tích của độ dài hai vector. Công thức: $similarity(q, d) = \frac{\vec{q} \cdot \vec{d}}{|\vec{q}| \times |\vec{d}|}$.
+    
+    \item Sắp xếp và trả về top-K tài liệu có độ tương đồng cao nhất.
+\end{enumerate}
+
+\textbf{Tối ưu hóa:} Thay vì lưu toàn bộ ma trận TF-IDF (222,981 x 50,000), hệ thống chỉ tính toán TF-IDF cho các tài liệu ứng viên được tìm thấy qua chỉ mục ngược, giảm đáng kể chi phí tính toán.
+
+
+\subsection{Mô hình BM25}
+
+BM25 được cài đặt dựa trên công thức chuẩn với các tham số $k_1 = 1.5$ và $b = 0.75$.
+
+\textbf{Cấu trúc dữ liệu:}
+
+Các giá trị cần tính trước được lưu trong chỉ mục:
+\begin{itemize}
+    \item $f(q_i, D)$: term frequency trong mỗi tài liệu
+    \item $|D|$: độ dài mỗi tài liệu
+    \item $N$: tổng số tài liệu
+    \item $\text{avgdl}$: độ dài trung bình của corpus
+\end{itemize}
+
+\textbf{Thuật toán tính điểm BM25:}
+
+\begin{algorithm}[H]
+\caption{ScoreBM25}
+\SetAlgoLined
+\KwIn{$Q$ - truy vấn (danh sách các term), $D$ - tài liệu}
+\KwOut{$score$ - điểm số BM25}
+$score \leftarrow 0$\;
+\ForEach{$q_i \in Q$}{
+    \If{$q_i \notin D$}{
+        \Continue\;
+    }
+    $f \leftarrow \text{getTF}(q_i, D)$\;
+    $n_q \leftarrow \text{getDocFreq}(q_i)$\;
+    $idf \leftarrow \ln\left(\frac{N - n_q + 0.5}{n_q + 0.5} + 1\right)$\;
+    $numerator \leftarrow f \times (k_1 + 1)$\;
+    $denominator \leftarrow f + k_1 \times \left(1 - b + b \times \frac{|D|}{\text{avgdl}}\right)$\;
+    $score \leftarrow score + idf \times \frac{numerator}{denominator}$\;
+}
+\Return{$score$}
+\end{algorithm}
+
+\textbf{Thuật toán truy vấn BM25:}
+
+\begin{algorithm}[H]
+\caption{QueryBM25}
+\SetAlgoLined
+\KwIn{$Q$ - chuỗi truy vấn, $k$ - số kết quả cần trả về}
+\KwOut{$R$ - danh sách top-$k$ tài liệu}
+$Q \leftarrow \text{preprocess}(Q)$\;
+$\text{candidates} \leftarrow \text{getCandidates}(Q)$\;
+$\text{scores} \leftarrow []$\;
+\ForEach{$D \in \text{candidates}$}{
+    $s \leftarrow \text{ScoreBM25}(Q, D)$\;
+    $\text{scores}.\text{append}((D, s))$\;
+}
+$\text{scores}.\text{sort}(\text{by score descending})$\;
+$R \leftarrow \text{scores}[0:k]$\;
+\Return{$R$}
+\end{algorithm}
+
+\textbf{So sánh với VSM:} BM25 có hai cải tiến chính so với VSM:
+\begin{itemize}
+    \item Độ bão hòa TF (TF saturation): Giới hạn đóng góp của tần suất cao.
+    \item Chuẩn hóa độ dài (Length normalization): Cân bằng giữa tài liệu dài và ngắn.
+\end{itemize}
+
+Kết quả thực nghiệm cho thấy BM25 vượt trội hơn VSM đáng kể (MRR 0.5269 so với 0.3353).
 
 
 \section{Kết quả và đánh giá}

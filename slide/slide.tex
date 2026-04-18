@@ -56,56 +56,84 @@
 
 % ========== SECTION 2: CO SO LY THUYET ==========
 \section{Cơ sở lý thuyết}
-\subsection{Elasticsearch}
-\begin{frame}{Elasticsearch - Tổng quan}
+
+\subsection{Tiền xử lý}
+\begin{frame}{Tại sao cần tiền xử lý tiếng Việt?}
+\textbf{Đặc thù tiếng Việt:}
 \begin{itemize}
-    \item Công cụ tìm kiếm phân tán, mã nguồn mở \cite{elasticsearch}
-    \item Dựa trên Apache Lucene
-    \item CSDL NoSQL, lưu trữ tài liệu dạng JSON
-    \item Sử dụng BM25 làm thước đo mặc định \cite{BM25}
+    \item Từ ghép không có dấu cách: \textit{trách nhiệm}, \textit{phạm tội}
+    \item Cùng một từ, nhiều cách viết: \textit{Việt Nam}, \textit{ViệtNam}
+    \item Từ dừng phổ biến: \textit{là}, \textit{của}, \textit{và}...
 \end{itemize}
+
+\vspace{0.3cm}
+\textbf{Các bước tiền xử lý:}
+\begin{enumerate}
+    \item Chuẩn hóa Unicode (NFC)
+    \item Tách từ (tokenization)
+    \item Loại bỏ từ dừng
+    \item Chuyển về chữ thường
+\end{enumerate}
 \end{frame}
 
 \begin{frame}{Tiền xử lý - Ví dụ}
 \begin{columns}
-\begin{column}{0.5\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Văn bản gốc:}\\
 \textit{Người phạm tội sẽ bị truy cứu trách nhiệm hình sự}
+
+\vspace{0.5cm}
+\textit{Thuế GTGT của hàng hóa nhập khẩu}
 \end{column}
-\begin{column}{0.5\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Sau khi xử lý:}\\
-\textit{Người\_phạm\_tội sẽ bị truy\_cứu trách\_nhiệm hình\_sự}
+\textit{người\_phạm\_tội truy\_cứu trách\_nhiệm hình\_sự}
+
+\vspace{0.5cm}
+\textit{thuế\_gtgt hàng\_hóa nhập\_khẩu}
 \end{column}
 \end{columns}
+
 \vspace{0.5cm}
-\red{Lý do: Tiếng Việt có từ ghép không dấu cách giữa các tiếng}
+\green{Kết quả: Các từ ghép được giữ nguyên, loại bỏ từ dừng}
 \end{frame}
 
 \subsection{Chỉ mục ngược}
 \begin{frame}{Chỉ mục ngược (Inverted Index)}
+\textbf{Định nghĩa:} Cấu trúc dữ liệu ánh xạ từ \textbf{term} $\rightarrow$ danh sách tài liệu chứa term đó
+
+\vspace{0.3cm}
+\textbf{Hai thành phần chính:}
 \begin{itemize}
-    \item Ánh xạ ngược từ \textbf{từ (term)} đến \textbf{tài liệu} chứa từ đó
-    \item Gồm:
-    \begin{itemize}
-        \item \textbf{Từ điển (Dictionary):} Tập hợp các từ vựng
-        \item \textbf{Postings list:} Danh sách các tài liệu chứa từ đó
-    \end{itemize}
+    \item \textbf{Dictionary:} Tập hợp các từ duy nhất trong corpus
+    \item \textbf{Postings List:} Danh sách (docID, term frequency) cho mỗi từ
 \end{itemize}
+
+\vspace{0.3cm}
+\textbf{Ưu điểm:} Tra cứu $O(1)$ thay vì duyệt toàn bộ 222,981 tài liệu
 \end{frame}
 
 \begin{frame}{Chỉ mục ngược - Ví dụ}
 \begin{table}
 \centering
+\small
 \begin{tabular}{|l|l|}
 \hline
-\textbf{Từ} & \textbf{Postings} \\ \hline
-thuế & Doc10, Doc25, Doc58, Doc100 \\ \hline
-luật & Doc3, Doc7, Doc12, Doc45, Doc89 \\ \hline
-phạm & Doc1, Doc22, Doc33, Doc55 \\ \hline
-trách\_nhiệm & Doc15, Doc30, Doc42 \\ \hline
+\textbf{Term} & \textbf{Postings List} \\
+\hline
+thu\_gtgt & (Doc10, 5), (Doc25, 2), (Doc58, 3) \\
+\hline
+người\_phạm\_tội & (Doc1, 1), (Doc22, 3), (Doc33, 2) \\
+\hline
+hợp\_đồng & (Doc5, 4), (Doc12, 1), (Doc89, 2) \\
+\hline
+trách\_nhiệm & (Doc15, 2), (Doc30, 1), (Doc42, 3) \\
+\hline
 \end{tabular}
 \end{table}
-\red{Tra cứu nhanh: Thay vì duyệt 222,981 tài liệu, chỉ cần tra index}
+
+\vspace{0.3cm}
+\green{Truy vấn "thu\_gtgt AND hợp\_đồng":} Lấy giao của Doc10, Doc25, Doc58 và Doc5, Doc12, Doc89
 \end{frame}
 
 \subsection{TF-IDF}
