@@ -83,6 +83,8 @@ Mục tiêu của việc so sánh này là chứng minh tầm quan trọng của
 
 Điều này dẫn đến việc tìm kiếm với từ khóa "truy cứu" sẽ không khớp với văn bản vì Elasticsearch đã tách "truy" và "cứu" thành hai token riêng biệt. Ngược lại, khi văn bản đã được xử lý trước bằng underthesea, từ ghép "truy\_cứu" được giữ nguyên và việc tìm kiếm sẽ chính xác hơn.
 
+Kết quả thực nghiệm cho thấy chỉ mục đã xử lý cho kết quả tốt hơn, chứng tỏ tiền xử lý văn bản tiếng Việt là cần thiết.
+
 Quy trình đánh chỉ mục được thực hiện như sau:
 
 \begin{enumerate}
@@ -250,54 +252,74 @@ $R \leftarrow D$\;
 \section{Các phương pháp truy xuất}
 \subsection{Mô hình Boolean}
 
-Mô hình Boolean được cài đặt dựa trên các phép toán tập hợp trên chỉ mục ngược.
+Mô hình Boolean được cài đặt dựa trên các phép toán tập hợp trên chỉ mục ngược. Mỗi truy vấn chỉ chứa tối đa một toán tử (AND, OR, hoặc NOT) để đơn giản hóa việc xử lý.
 
 \textbf{Cấu trúc truy vấn:}
 
-Truy vấn Boolean được biểu diễn dưới dạng cây cú pháp trừu tượng (AST - Abstract Syntax Tree). Mỗi nút trong cây có thể là:
+Truy vấn Boolean được biểu diễn dưới dạng danh sách các token, trong đó có thể chứa một toán tử (AND, OR, NOT) để phân tách hai nhóm term:
 \begin{itemize}
-    \item \texttt{TERM}: Lá của cây, chứa từ khóa
-    \item \texttt{AND}, \texttt{OR}: Nút trong, có hai con
-    \item \texttt{NOT}: Nút trong, có một con
+    \item \texttt{first\_terms}: Các term trước toán tử
+    \item \texttt{operator}: Toán tử AND, OR, hoặc NOT
+    \item \texttt{second\_terms}: Các term sau toán tử
 \end{itemize}
 
-Ví dụ: truy vấn "thuế AND (luật OR phạt)" được biểu diễn thành cây với nút gốc là AND, nhánh trái là "thuế", nhánh phải là OR của "luật" và "phạt".
+Ví dụ: truy vấn "thuế AND luật" sẽ được tách thành first\_terms = ["thuế"], operator = "AND", second\_terms = ["luật"].
 
-\textbf{Thuật toán đánh giá:}
+\textbf{Thuật toán tìm kiếm Boolean:}
 
 \begin{algorithm}[H]
-\caption{EvaluateBooleanAST}
+\caption{BooleanSearch}
 \SetAlgoLined
-\KwIn{\textit{node} - nút hiện tại trong cây AST}
-\KwOut{\textit{result} - danh sách postings}
-\Switch{\textit{node}.type}{
-    \Case{TERM}{
-        \Return{$\text{getPostings}(\textit{node}.\text{value})$}
+\KwIn{$query$ - danh sách các token truy vấn}
+\KwOut{$result$ - danh sách các docID}
+$first\_terms \leftarrow []$, $second\_terms \leftarrow []$, $operator \leftarrow \text{""}$
+$is\_first \leftarrow \text{true}$
+
+\ForEach{$term \in query$}{
+    \If{$term \in \{AND, OR, NOT\}$}{
+        $is\_first \leftarrow \text{false}$
+        $operator \leftarrow term$
+        \textbf{continue}
     }
-    \Case{AND}{
-        $L \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{left})$\;
-        $R \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{right})$\;
-        \Return{$\text{Intersect}(L, R)$}
-    }
-    \Case{OR}{
-        $L \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{left})$\;
-        $R \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{right})$\;
-        \Return{$\text{Union}(L, R)$}
-    }
-    \Case{NOT}{
-        $O \leftarrow \text{EvaluateBooleanAST}(\textit{node}.\text{child})$\;
-        \Return{$\text{Complement}(O)$}
+    \If{$is\_first$}{
+        Thêm $term$ vào $first\_terms$
+    }{
+        Thêm $term$ vào $second\_terms$
     }
 }
+
+\If{$operator = \text{""}$}{
+    $operator \leftarrow \text{AND}$\tcc*{Mặc định AND nếu không có toán tử}
+}
+
+\Switch{$operator$}{
+    \Case{AND}{
+        $all\_terms \leftarrow first\_terms + second\_terms$
+        $result \leftarrow \text{getDocsContaining}(all\_terms[0])$
+        \ForEach{$term \in all\_terms[1:]$}{
+            $result \leftarrow result \cap \text{getDocsContaining}(term)$
+        }
+    }
+    \Case{OR}{
+        $result \leftarrow \emptyset$
+        \ForEach{$term \in first\_terms$}{
+            $result \leftarrow result \cup \text{getDocsContaining}(term)$
+        }
+        \ForEach{$term \in second\_terms$}{
+            $result \leftarrow result \cup \text{getDocsContaining}(term)$
+        }
+    }
+    \Case{NOT}{
+        $all\_docs \leftarrow \text{getAllDocIds}()$
+        $excluded \leftarrow \emptyset$
+        \ForEach{$term \in first\_terms + second\_terms$}{
+            $excluded \leftarrow excluded \cup \text{getDocsContaining}(term)$
+        }
+        $result \leftarrow all\_docs - excluded$
+    }
+}
+\Return{$result$}
 \end{algorithm}
-
-\textbf{Quy trình xử lý truy vấn:}
-
-\begin{enumerate}
-    \item \textbf{Phân tích cú pháp:} Tách truy vấn thành tokens, xác định thứ tự ưu tiên: NOT $>$ AND $>$ OR.
-    \item \textbf{Xây dựng AST:} Chuyển tokens thành cây cú pháp.
-    \item \textbf{Đánh giá:} Gọi $\text{EvaluateBooleanAST}$ trên nút gốc.
-\end{enumerate}
 
 \textbf{Hạn chế:} Do không có cơ chế xếp hạng, tất cả tài liệu khớp được trả về với cùng mức độ ưu tiên.
 
@@ -316,7 +338,7 @@ Với mỗi từ $t$ trong tài liệu $d$, trọng số TF-IDF được tính n
 
 Tần suất xuất hiện của từ $t$ trong tài liệu $d$ được tính bằng số lần xuất hiện của $t$ chia cho tổng số từ trong $d$. Để giảm ảnh hưởng của các tài liệu dài, có thể sử dụng công thức logarit: $TF(t, d) = 1 + \log(\text{số lần xuất hiện của } t)$.
 
-IDF của từ $t$ được tính bằng logarit của tổng số tài liệu chia cho số tài liệu chứa $t$, với công thức smoothing để tránh chia cho 0: $IDF(t) = \log(\frac{N + 1}{n_t + 1}) + 1$, trong đó $N$ là tổng số tài liệu và $n_t$ là số tài liệu chứa từ $t$.
+IDF của từ $t$ được tính bằng logarit của tổng số tài liệu chia cho số tài liệu chứa $t$, với công thức smoothing để tránh chia cho 0: $IDF(t) = \log\left(\frac{N + 1}{n_t + 1}\right) + 1$, trong đó $N$ là tổng số tài liệu và $n_t$ là số tài liệu chứa từ $t$.
 
 Trọng số TF-IDF cuối cùng là tích của TF và IDF.
 

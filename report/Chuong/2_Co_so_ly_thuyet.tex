@@ -234,7 +234,7 @@ $$
 
 Công thức có smoothing để tránh chia cho 0:
 $$
-IDF(t, D) = \log \left( \frac{N}{n_t} + 1 \right)
+IDF(t, D) = \log \left( \frac{N + 1}{n_t + 1} \right) + 1
 $$
 
 \textbf{TF-IDF:}
@@ -605,14 +605,5 @@ Hình \ref{fig:elasticsearch-architecture-retrieval} minh họa các bước tru
 
 \subsubsection{Xử lý ngôn ngữ}
 Elasticsearch hỗ trợ phân tích và tách từ đa ngôn ngữ. Tuy nhiên, bộ phân tích mặc định (standard analyzer) được thiết kế cho tiếng Anh. Với tiếng Việt, cần sử dụng bộ phân tích tùy chỉnh hoặc plugin hỗ trợ tiếng Việt.
-
-Trong đề tài này, nhóm sử dụng hai cách tiếp cận:
-\begin{enumerate}
-    \item \textbf{Chỉ mục bình thường (Normal index):} Sử dụng bộ phân tích mặc định của Elasticsearch (standard analyzer).
-    
-    \item \textbf{Chỉ mục đã xử lý (Processed index):} Tiền xử lý văn bản bằng underthesea, tách từ và nối lại bằng dấu cách trước khi đưa vào Elasticsearch.
-\end{enumerate}
-
-Kết quả cho thấy chỉ mục đã xử lý cho kết quả tốt hơn, chứng tỏ tiền xử lý văn bản tiếng Việt là cần thiết.
 
 \end{document}
