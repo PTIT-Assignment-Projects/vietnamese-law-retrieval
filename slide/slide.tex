@@ -154,6 +154,24 @@ TF\text{-}IDF(t, d, D) = TF(t, d) \times IDF(t, D)
 \]
 \end{frame}
 
+\begin{frame}{TF-IDF -- Thuật toán tính điểm}
+\small
+\textbf{Input:} Truy vấn $Q$, tài liệu $D$, chỉ mục ngược\\
+\textbf{Output:} Điểm TF-IDF
+\begin{enumerate}
+    \item $score \leftarrow 0$
+    \item \textbf{for} mỗi từ $t \in Q$ \textbf{do}
+    \item \quad $tf \leftarrow$ số lần $t$ xuất hiện trong $D$
+    \item \quad $idf \leftarrow \log\left(\frac{N + 1}{n_t + 1}\right) + 1$
+    \item \quad $tf\_normalized \leftarrow 1 + \log(tf)$
+    \item \quad $score \leftarrow score + tf\_normalized \times idf$
+    \item \textbf{end for}
+    \item \textbf{return} $score$
+\end{enumerate}
+\vspace{0.3cm}
+\green{Tối ưu:} Chỉ tính TF-IDF cho các tài liệu ứng viên từ chỉ mục ngược
+\end{frame}
+
 \subsection{BM25}
 \begin{frame}{BM25}
 Biến thể nâng cao của TF-IDF \cite{manning2008introduction}, dựa trên mô hình xác suất:
@@ -165,6 +183,31 @@ Biến thể nâng cao của TF-IDF \cite{manning2008introduction}, dựa trên 
     \item $b$: Chuẩn hóa độ dài tài liệu ($0.75$)
     \item Ưu điểm: Xử lý tốt độ bão hòa TF và chuẩn hóa độ dài
 \end{itemize}
+\end{frame}
+
+\begin{frame}{BM25 -- Thuật toán tính điểm}
+\footnotesize
+\textbf{Input:} Truy vấn $Q$, chỉ mục ngược\\
+\textbf{Output:} Top $N$ tài liệu có điểm cao nhất
+\begin{enumerate}
+    \item $k_1 \leftarrow 1.5$, $b \leftarrow 0.75$
+    \item \textbf{Lấy candidates:} $C \leftarrow \bigcup_{q_i \in Q}$ các tài liệu chứa $q_i$
+    \item \textbf{for} mỗi $D \in C$ \textbf{do}
+    \item \quad $score \leftarrow 0$
+    \item \quad \textbf{for} mỗi $q_i \in Q$ \textbf{do}
+    \item \quad \quad $f \leftarrow$ số lần $q_i$ xuất hiện trong $D$
+    \item \quad \quad $n_q \leftarrow$ số tài liệu chứa $q_i$
+    \item \quad \quad $idf \leftarrow \ln\left(\frac{N - n_q + 0.5}{n_q + 0.5} + 1\right)$
+    \item \quad \quad $num \leftarrow f \times (k_1 + 1)$
+    \item \quad \quad $den \leftarrow f + k_1 \times (1 - b + b \times \frac{|D|}{avgdl})$
+    \item \quad \quad $score \leftarrow score + idf \times \frac{num}{den}$
+    \item \quad \textbf{end for}
+    \item \quad Lưu $(D, score)$
+    \item \textbf{end for}
+    \item Sắp xếp theo score giảm dần, trả về top $N$
+\end{enumerate}
+\vspace{0.3cm}
+\green{Độ phức tạp: $O(|C| \times |Q|)$ thay vì $O(N \times |Q|)$}
 \end{frame}
 
 \subsection{Các thước đo đánh giá}
@@ -199,6 +242,11 @@ Tính đến cả thứ hạng và độ chính xác:
 \[
 AP = \sum_{k=1}^{n} P(k) \cdot \Delta r(k)
 \]
+Trong đó:
+\begin{itemize}
+    \item $P(k) = \frac{\#\text{relevant trong top }k}{k}$: Precision\@k
+    \item $\Delta r(k) = \frac{1}{|R|}$ nếu tài liệu tại $k$ là relevant, $=0$ nếu không
+\end{itemize}
 \[
 MAP = \frac{1}{N} \sum_{i=1}^{N} AP_i
 \]
@@ -218,22 +266,8 @@ MAP = \frac{1}{N} \sum_{i=1}^{N} AP_i
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Elasticsearch - Các thành phần chính}
-\begin{itemize}
-    \item \textbf{Document:} Đơn vị thông tin nhỏ nhất (JSON)
-    \item \textbf{Index:} Tập hợp logic các document cùng schema
-    \item \textbf{Shard:} Đơn vị cơ bản của tìm kiếm, được sao chép để dự phòng
-    \item \textbf{Node:} Máy ảo độc lập quản lý shard
-    \item \textbf{Cluster:} Tập hợp các node kết nối
-\end{itemize}
-\end{frame}
 
 \begin{frame}{Elasticsearch - Truy vấn}
-\begin{itemize}
-    \item \textbf{Pha truy vấn:} Phát yêu cầu tới các shard liên quan
-    \item \textbf{Pha tính điểm:} Mỗi shard tính điểm liên quan
-    \item \textbf{Pha tổng hợp:} Hợp nhất và xếp hạng kết quả
-\end{itemize}
 \begin{itemize}
     \item \textbf{Match Query:} Tìm kiếm toàn văn với phân tích token
     \item \textbf{Term Query:} Kết quả khớp chính xác
@@ -245,11 +279,11 @@ MAP = \frac{1}{N} \sum_{i=1}^{N} AP_i
 \section{Thực nghiệm và đánh giá kết quả}
 \begin{frame}{Tập dữ liệu}
 \begin{itemize}
-    \item Nguồn: Bộ dữ liệu văn bản pháp luật Việt Nam trên HuggingFace \cite{dataset} 
+    \item Nguồn: Bộ dữ liệu văn bản pháp luật Việt Nam trên HuggingFace \cite{dataset}
     \item \textbf{Corpus:} 222,981 tài liệu (các điều, khoản luật)
     \item \textbf{Train:} 9,541 câu hỏi
     \item \textbf{Test:} 3,184 câu hỏi
-    \item Sử dụng 2,000 mẫu đầu tiên để đánh giá (giới hạn phần cứng)
+    \item Sử dụng 2,000 mẫu đầu tiên để đánh giá (giới hạn phần cứng, thời gian chạy)
 \end{itemize}
 \end{frame}
 
@@ -273,7 +307,7 @@ Cột & Kiểu & Mô tả \\ \hline
     \item Sử dụng \texttt{underthesea} \cite{underthesea} để chuẩn hóa và tách từ
     \item Token có 2 từ trở lên được nối bằng dấu "\_"
     \item Loại bỏ từ dừng bằng danh sách từ Github \cite{vietnamese_stopwords}
-\end{itemize} 
+\end{itemize}
 \vspace{0.3cm}
 \textbf{Elasticsearch - 2 cách tiếp cận:}
 \begin{itemize}
